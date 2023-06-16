@@ -33,3 +33,5 @@
 
 build/
 vcpkg/
+.vs/
+CMakeSettings.json
