@@ -19,6 +19,7 @@ message(STATUS "Qt version found: ${Qt5_VERSION}")
 set(APP_TARGET_NAME "3DViewer")
 add_executable(${APP_TARGET_NAME}  
         3DViewer/main.cpp 
+        3DViewer/UI/src/3DViewer.cpp
         3DViewer/UI/include/3DViewer.h
         )
 
