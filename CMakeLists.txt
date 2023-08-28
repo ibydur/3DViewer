@@ -21,7 +21,10 @@ add_executable(${APP_TARGET_NAME}
         3DViewer/main.cpp 
         3DViewer/UI/src/3DViewer.cpp
         3DViewer/UI/include/3DViewer.h
-        )
+        3DViewer/Renderer/include/OpenGLRenderer.h
+        3DViewer/Renderer/src/OpenGLRenderer.cpp
+        3DViewer/Renderer/include/Camera.h
+        3DViewer/Renderer/src/Camera.cpp)
 
 # Link the Qt5 libraries to your executable
-target_link_libraries(${APP_TARGET_NAME} PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets)
+target_link_libraries(${APP_TARGET_NAME} PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::OpenGL)
