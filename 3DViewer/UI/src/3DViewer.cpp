@@ -3,8 +3,11 @@
 
 Viewer::Viewer() {
 	createMenus();
-
-	resize(QGuiApplication::primaryScreen()->availableSize() * 3 / 5);
+	OpenGLRenderer* openGLWidget = new OpenGLRenderer(this);
+	setFocus();
+	openGLWidget->setFocusPolicy(Qt::StrongFocus);
+	setCentralWidget(openGLWidget);
+	resize(QGuiApplication::primaryScreen()->availableSize());
 }
 
 void Viewer::createMenus() {
