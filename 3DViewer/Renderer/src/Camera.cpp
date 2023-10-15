@@ -18,7 +18,7 @@ QMatrix4x4 Camera::getViewMatrix()
 }
 
 void Camera::processKeyboard(CameraMovement direction, float deltaTime) {
-    float velocity = movementSpeed * 0.01;
+    float velocity = movementSpeed * 0.05;
     if (direction == CameraMovement::FORWARD)
         position += front * velocity;
     if (direction == CameraMovement::BACKWARD)

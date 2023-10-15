@@ -3,6 +3,16 @@
 #include <qevent.h>
 #include <QApplication>
 
+QVector3D OpenGLRenderer::getObjectCenter()
+{
+    QVector3D objectCenter;
+    for (const auto& vertex : m_vertices) {
+        objectCenter += vertex;
+    }
+    objectCenter /= m_vertices.size();
+    return objectCenter;
+}
+
 OpenGLRenderer::~OpenGLRenderer()
 {
     glDisableVertexAttribArray(0);
@@ -14,7 +24,7 @@ void OpenGLRenderer::initializeGL() {
     timer.start();
     initializeOpenGLFunctions();
     initializeShaders();
-    setupVboAndVao();
+    //setupVboAndVao();
     m_last_mouse_pos = QPoint(width() / 2.0f, height() / 2.0f);
 }
 
@@ -32,15 +42,20 @@ void OpenGLRenderer::paintGL() {
     m_view.setToIdentity();
     m_view = camera->getViewMatrix();
     m_model.setToIdentity();
-     // Bind the VAO before drawing
+
+    // Apply translation to the model matrix
+    auto objectCenter = getObjectCenter();
+    m_model.translate(-objectCenter);
+
     m_shader_program->setUniformValue("viewMatrix", m_view);
     m_shader_program->setUniformValue("projectionMatrix", m_projection);
     m_shader_program->setUniformValue("modelMatrix", m_model);
-    glBindVertexArray(m_vao);
-    // Draw the triangle
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    // Unbind VAO after drawing
-    glBindVertexArray(0);
+
+    (drawingMode == Mode::SOLID) ? glPolygonMode(GL_FRONT_AND_BACK, GL_FILL) : glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), m_vertices.data());
+    glDrawArrays(GL_TRIANGLES, 0, m_vertices.size());
+    glDisableVertexAttribArray(0);
 
     m_shader_program->release();
 }
@@ -61,64 +76,9 @@ void OpenGLRenderer::initializeShaders() {
     m_shader_program->addShader(m_vertex_shader);
     m_shader_program->addShader(m_fragment_shader);
     m_shader_program->link(); 
-}
 
-void OpenGLRenderer::setupVboAndVao() {
-    GLfloat vertices[] = {
-          -0.5f, -0.5f, -0.5f,  
-           0.5f, -0.5f, -0.5f, 
-           0.5f,  0.5f, -0.5f, 
-           0.5f,  0.5f, -0.5f,  
-          -0.5f,  0.5f, -0.5f, 
-          -0.5f, -0.5f, -0.5f,  
-
-          -0.5f, -0.5f,  0.5f,
-           0.5f, -0.5f,  0.5f, 
-           0.5f,  0.5f,  0.5f,  
-           0.5f,  0.5f,  0.5f,  
-          -0.5f,  0.5f,  0.5f,  
-          -0.5f, -0.5f,  0.5f,  
-
-          -0.5f,  0.5f,  0.5f,  
-          -0.5f,  0.5f, -0.5f,
-          -0.5f, -0.5f, -0.5f, 
-          -0.5f, -0.5f, -0.5f,  
-          -0.5f, -0.5f,  0.5f, 
-          -0.5f,  0.5f,  0.5f, 
-
-           0.5f,  0.5f,  0.5f, 
-           0.5f,  0.5f, -0.5f,  
-           0.5f, -0.5f, -0.5f, 
-           0.5f, -0.5f, -0.5f, 
-           0.5f, -0.5f,  0.5f,  
-           0.5f,  0.5f,  0.5f, 
-
-          -0.5f, -0.5f, -0.5f,  
-           0.5f, -0.5f, -0.5f, 
-           0.5f, -0.5f,  0.5f, 
-           0.5f, -0.5f,  0.5f,  
-          -0.5f, -0.5f,  0.5f, 
-          -0.5f, -0.5f, -0.5f, 
-
-          -0.5f,  0.5f, -0.5f, 
-           0.5f,  0.5f, -0.5f,  
-           0.5f,  0.5f,  0.5f, 
-           0.5f,  0.5f,  0.5f,  
-          -0.5f,  0.5f,  0.5f, 
-          -0.5f,  0.5f, -0.5f, 
-    };
-
-    // Create vertex buffer
-    glGenVertexArrays(1, &m_vao);
-    glGenBuffers(1, &m_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glBindVertexArray(m_vao);
-    // Set up vertex attribute pointer
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-    glBindVertexArray(0);
+    delete m_vertex_shader;
+    delete m_fragment_shader;
 }
 
 void OpenGLRenderer::keyPressEvent(QKeyEvent* event) {
@@ -140,6 +100,9 @@ void OpenGLRenderer::keyPressEvent(QKeyEvent* event) {
     case Qt::Key_R:
         camera->reset();
         break;
+    case Qt::Key_C:
+        drawingMode = (drawingMode == Mode::SOLID) ? Mode::WIREFRAME : Mode::SOLID;
+        break;
     }
     update();
 }
@@ -154,7 +117,6 @@ void OpenGLRenderer::mouseReleaseEvent(QMouseEvent* event)
     mFirstTimeHandled = true;
     update();
 }
-
 
 void OpenGLRenderer::mouseMoveEvent(QMouseEvent* event) {
     if (event->buttons() & Qt::LeftButton) {
@@ -181,3 +143,66 @@ void OpenGLRenderer::wheelEvent(QWheelEvent* event) {
     update();
     //event->accept();
 }
+
+
+//
+//void OpenGLRenderer::setupVboAndVao() {
+//    glDisableVertexAttribArray(0);
+//    glDeleteBuffers(1, &m_vbo);
+//    glDeleteVertexArrays(1, &m_vao);
+//    GLfloat tmp[] = {
+//          -0.5f, -0.5f, -0.5f,  
+//           0.5f, -0.5f, -0.5f, 
+//           0.5f,  0.5f, -0.5f, 
+//           0.5f,  0.5f, -0.5f,  
+//          -0.5f,  0.5f, -0.5f, 
+//          -0.5f, -0.5f, -0.5f,  
+//
+//          -0.5f, -0.5f,  0.5f,
+//           0.5f, -0.5f,  0.5f, 
+//           0.5f,  0.5f,  0.5f,  
+//           0.5f,  0.5f,  0.5f,  
+//          -0.5f,  0.5f,  0.5f,  
+//          -0.5f, -0.5f,  0.5f,  
+//
+//          -0.5f,  0.5f,  0.5f,  
+//          -0.5f,  0.5f, -0.5f,
+//          -0.5f, -0.5f, -0.5f, 
+//          -0.5f, -0.5f, -0.5f,  
+//          -0.5f, -0.5f,  0.5f, 
+//          -0.5f,  0.5f,  0.5f, 
+//
+//           0.5f,  0.5f,  0.5f, 
+//           0.5f,  0.5f, -0.5f,  
+//           0.5f, -0.5f, -0.5f, 
+//           0.5f, -0.5f, -0.5f, 
+//           0.5f, -0.5f,  0.5f,  
+//           0.5f,  0.5f,  0.5f, 
+//
+//          -0.5f, -0.5f, -0.5f,  
+//           0.5f, -0.5f, -0.5f, 
+//           0.5f, -0.5f,  0.5f, 
+//           0.5f, -0.5f,  0.5f,  
+//          -0.5f, -0.5f,  0.5f, 
+//          -0.5f, -0.5f, -0.5f, 
+//
+//          -0.5f,  0.5f, -0.5f, 
+//           0.5f,  0.5f, -0.5f,  
+//           0.5f,  0.5f,  0.5f, 
+//           0.5f,  0.5f,  0.5f,  
+//          -0.5f,  0.5f,  0.5f, 
+//          -0.5f,  0.5f, -0.5f, 
+//    };
+//
+//    // Create vertex buffer
+//    glGenVertexArrays(1, &m_vao);
+//    glGenBuffers(1, &m_vbo);
+//    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+//    glBufferData(GL_ARRAY_BUFFER, sizeof(tmp), tmp, GL_STATIC_DRAW);
+//
+//    glBindVertexArray(m_vao);
+//    // Set up vertex attribute pointer
+//    glEnableVertexAttribArray(0);
+//    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+//    glBindVertexArray(0);
+//}

@@ -15,7 +15,7 @@ enum class CameraMovement {
 
 class Camera {
 public:
-    Camera(const QVector3D& position = { 0.0f, 0.0f, 5.0f });
+    Camera(const QVector3D& position = { 0.0f, 0.0f, 20.0f });
 
     // Getters for camera vectors and matrices
     QMatrix4x4 getViewMatrix();
