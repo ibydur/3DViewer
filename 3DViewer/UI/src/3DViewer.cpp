@@ -35,11 +35,10 @@ void Viewer::addFile() {
 
 bool Viewer::openFile(const QString& fileName) {
 	auto mesh = CGAL_API::constructMeshFromObj(fileName.toStdString());
+	if (nullptr == mesh) {
+		return false;
+	}
 	openGLRenderer->addObject(std::move(SceneObject::makeObject(mesh)));
-	//openGLRenderer->updateVertices(sceneObjectsLst.at(0)->getObjVertices());
-	//openGLRenderer->setupVboAndVao();
 	openGLRenderer->update();
 	return true;
-	//bool result = (nullptr != mesh) ? true : false;
-	//return result;
 }

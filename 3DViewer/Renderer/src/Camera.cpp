@@ -1,5 +1,6 @@
-#include "../include/Camera.h"
 #include <qmath.h>
+
+#include "../include/Camera.h"
 
 Camera::Camera(const QVector3D& position)
     : position(position), front(QVector3D(0.0f, 0.0f, -1.0f)),

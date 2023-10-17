@@ -1,10 +1,10 @@
 #pragma once
 
-#include <qvector.h>
-#include <qvector2d.h>
-#include <qvector3d.h>
+#include <QVector.h>
+#include <QVector2D.h>
+#include <QVector3D.h>
 #include <QOpenGLBuffer>
-#include <qopenglvertexarrayobject.h>
+#include <QOpenGLVertexArrayObject.h>
 
 #include "../../Geometry/include/CgalApi.h"
 
@@ -20,34 +20,33 @@ public:
 	~SceneObject() = default;
 	SceneObject(const SceneObject&) = delete;
 	SceneObject(
-		const QVector<QVector3D>& vertices, 
-		const QVector<QVector3D>& normals, 
+		const QVector<QVector3D>& vertices,
+		const QVector<QVector3D>& normals,
 		const QVector<QVector2D>& textures = QVector<QVector2D>()
-	)
-		: vertices(vertices), m_normals(normals), m_textures(textures), m_objID(++m_idCounter)
-	{
-	}
-	inline QVector<QVector3D> getObjVertices() const { return this->vertices; }; //need to delete then
-	template <typename T>
-	inline static std::shared_ptr<SceneObject> makeObject(const T& mesh);
+	);
+	template <typename T> inline static std::shared_ptr<SceneObject> makeObject(const T& mesh);
 	inline unsigned int getID() const { return this->m_objID; };
+
 	void draw(OpenGLRenderer* renderer);
-	void intializeVBOandVAO(OpenGLRenderer* renderer);
+	void intializeBuffers(OpenGLRenderer* renderer);
 	void release();
+
+	inline bool isBuffersInited() const { return this->buffersInited; };
+	inline void setBuffersInited(bool inited) { this->buffersInited = inited; };
+
+	QVector3D getObjectCenter();
 
 	QOpenGLBuffer vbo;
 	QOpenGLVertexArrayObject vao;
 	QVector<QVector3D> vertices;
 private:
-	
 	QVector<QVector3D> m_normals;
 	QVector<QVector2D> m_textures;
 	
 	unsigned int m_objID;
 	static unsigned int m_idCounter;
+	bool buffersInited;
 };
-
-
 
 template<typename T>
 inline static std::shared_ptr<SceneObject> SceneObject::makeObject(const T& mesh)
