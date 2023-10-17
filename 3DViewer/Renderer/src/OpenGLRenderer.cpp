@@ -39,14 +39,21 @@ void OpenGLRenderer::initObjectBuffers(SceneObject& obj)
     obj.vao.bind();
 
     obj.vbo.create();
-    obj.vbo.setUsagePattern(QOpenGLBuffer::StreamDraw);
+    obj.vbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
     obj.vbo.bind();
 
-    obj.vbo.allocate(obj.vertices.constData(), obj.vertices.size() * sizeof(QVector3D));
+    obj.vbo.allocate(obj.vertices.constData(), obj.vertices.size() * sizeof(Vertex));
 
     m_shader_program->bind();
+    //position
     m_shader_program->enableAttributeArray(0);
-    m_shader_program->setAttributeArray(0, GL_FLOAT, 0, 3);
+    m_shader_program->setAttributeArray(0, GL_FLOAT, 0, 3, sizeof(Vertex));
+    //normal
+    m_shader_program->enableAttributeArray(1);
+    m_shader_program->setAttributeBuffer(1, GL_FLOAT, sizeof(QVector3D), 3, sizeof(Vertex));
+    //texture
+    m_shader_program->enableAttributeArray(2);
+    m_shader_program->setAttributeBuffer(2, GL_FLOAT, sizeof(QVector3D) * 2, 2, sizeof(Vertex));
 
     obj.setBuffersInited(true);
 }
@@ -81,9 +88,18 @@ void OpenGLRenderer::paintGL() {
         }
         auto objCenter = obj->getObjectCenter();
         m_model.translate(-objCenter);
+        //vertex shader
         m_shader_program->setUniformValue("viewMatrix", m_view);
         m_shader_program->setUniformValue("projectionMatrix", m_projection);
         m_shader_program->setUniformValue("modelMatrix", m_model);
+        //fragment shader
+        m_shader_program->setUniformValue("lightDirection", QVector3D(0.0f, 10.0f, 0.0f));
+        m_shader_program->setUniformValue("lightColor", QVector3D(1.0f, 1.0f, 1.0f));
+        m_shader_program->setUniformValue("objectColor", QVector3D(0.7f, 0.7f, 0.7f));
+        m_shader_program->setUniformValue("ambientStrength", 0.2f);
+        m_shader_program->setUniformValue("specularStrength", 0.5f);
+        m_shader_program->setUniformValue("shininess", 32.0f);
+
         obj->draw(this);
     }
 }
