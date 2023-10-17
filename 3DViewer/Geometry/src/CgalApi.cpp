@@ -25,8 +25,8 @@ QVector3D CGAL_API::computeVertexNormal(const std::unique_ptr<Surface_mesh>& mes
         return { 0, 0, 0 };
     auto vertex_normal = CGAL::Polygon_mesh_processing::compute_vertex_normal(vertex, *mesh);
     return QVector3D(
-        CGAL::to_double(vertex_normal.x()), 
-        CGAL::to_double(vertex_normal.y()), 
-        CGAL::to_double(vertex_normal.z())
+        vertex_normal.x(),
+        vertex_normal.y(), 
+        vertex_normal.z()
     );
 }

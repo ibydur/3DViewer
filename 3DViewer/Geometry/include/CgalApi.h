@@ -6,7 +6,7 @@
 
 #include <QVector3D.h>
 
-typedef CGAL::Exact_predicates_exact_constructions_kernel Kernel;
+typedef CGAL::Simple_cartesian<float> Kernel;
 typedef Kernel::Point_3 Point_3;
 typedef CGAL::Surface_mesh<Point_3> Surface_mesh;
 
