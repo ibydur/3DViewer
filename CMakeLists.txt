@@ -27,7 +27,11 @@ add_executable(${APP_TARGET_NAME}
         3DViewer/Renderer/include/Camera.h
         3DViewer/Renderer/src/Camera.cpp 
         3DViewer/Geometry/include/CgalApi.h
-        3DViewer/Geometry/src/CgalApi.cpp)
+        3DViewer/Geometry/src/CgalApi.cpp 
+        3DViewer/Scene/include/SceneObject.h 
+        3DViewer/Scene/include/Scene.h
+        3DViewer/Scene/src/Scene.cpp
+        3DViewer/Scene/src/SceneObject.cpp)
 
 # Link the Qt5 libraries to your executable
 target_link_libraries(${APP_TARGET_NAME} PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::OpenGL CGAL::CGAL)
