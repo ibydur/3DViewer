@@ -1,6 +1,7 @@
 #include "../include/CgalApi.h"
 #include <QDebug>
 #include <CGAL/property_map.h>
+#include <CGAL/Polygon_mesh_processing/compute_normal.h>
 
 std::unique_ptr<Surface_mesh> CGAL_API::constructMeshFromObj(const std::string& file_path)
 {
@@ -18,24 +19,14 @@ std::unique_ptr<Surface_mesh> CGAL_API::constructMeshFromObj(const std::string& 
     return mesh;
 }
 
-QVector<QVector3D> CGAL_API::loadMeshToVector(const std::unique_ptr<Surface_mesh>& mesh)
+QVector3D CGAL_API::computeVertexNormal(const std::unique_ptr<Surface_mesh>& mesh, const CGAL::SM_Vertex_index& vertex)
 {
-    if (nullptr == mesh) 
-        return {};
-
-    QVector<QVector3D> vertices;
-    vertices.reserve(mesh->number_of_vertices());
-
-    for (const auto& face : mesh->faces()) {
-        for (const auto& vertex : mesh->vertices_around_face(mesh->halfedge(face))) {
-            const auto& point = mesh->point(vertex);
-            vertices.push_back({
-                static_cast<float>(CGAL::to_double(point.x())),
-                static_cast<float>(CGAL::to_double(point.y())),
-                static_cast<float>(CGAL::to_double(point.z()))
-                });
-        }
-    }
-    vertices.shrink_to_fit();
-    return vertices;
+    if (nullptr == mesh)
+        return { 0, 0, 0 };
+    auto vertex_normal = CGAL::Polygon_mesh_processing::compute_vertex_normal(vertex, *mesh);
+    return QVector3D(
+        CGAL::to_double(vertex_normal.x()), 
+        CGAL::to_double(vertex_normal.y()), 
+        CGAL::to_double(vertex_normal.z())
+    );
 }
