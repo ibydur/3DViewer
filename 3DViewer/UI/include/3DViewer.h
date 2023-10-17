@@ -1,9 +1,10 @@
 #pragma once
 
 #include <QMainWindow>
-#include <QActionGroup>
 #include <QtWidgets>
+
 #include "../../Renderer/include/OpenGLRenderer.h"
+#include "../../Scene/include/SceneObject.h"
 
 class Viewer : public QMainWindow {
 public:
@@ -14,5 +15,4 @@ public:
 private:
 	OpenGLRenderer* openGLRenderer;
 	QAction* m_openFile;
-
 };
