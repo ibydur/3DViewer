@@ -3,11 +3,9 @@
 
 unsigned int SceneObject::m_idCounter = 0;
 
-SceneObject::SceneObject(const QVector<QVector3D>& vertices, const QVector<QVector3D>& normals, const QVector<QVector2D>& textures) : 
-	vertices(vertices), m_normals(normals), m_textures(textures),
-	m_objID(++m_idCounter), buffersInited(false)
+SceneObject::SceneObject(const QVector<Vertex>& vertices) :
+	vertices(vertices), m_objID(++m_idCounter), buffersInited(false)
 {
-
 }
 
 void SceneObject::draw(OpenGLRenderer* renderer)
@@ -30,7 +28,7 @@ QVector3D SceneObject::getObjectCenter()
 {
 	QVector3D objectCenter;
 	for (const auto& vertex : vertices) {
-		objectCenter += vertex;
+		objectCenter += vertex.position;
 	}
 	objectCenter /= vertices.size();
 	return objectCenter;

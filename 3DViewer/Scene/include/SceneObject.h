@@ -1,15 +1,17 @@
 #pragma once
-
 #include <QVector.h>
 #include <QVector2D.h>
 #include <QVector3D.h>
 #include <QOpenGLBuffer>
 #include <QOpenGLVertexArrayObject.h>
+#include <QElapsedTimer> 
 
 #include "../../Geometry/include/CgalApi.h"
 
 struct Vertex {
-
+	QVector3D position;
+	QVector3D normal;
+	QVector2D texture;
 };
 
 class OpenGLRenderer;
@@ -19,11 +21,7 @@ public:
 	 SceneObject() = default;
 	~SceneObject() = default;
 	SceneObject(const SceneObject&) = delete;
-	SceneObject(
-		const QVector<QVector3D>& vertices,
-		const QVector<QVector3D>& normals,
-		const QVector<QVector2D>& textures = QVector<QVector2D>()
-	);
+	SceneObject(const QVector<Vertex>& vertices);
 	template <typename T> inline static std::shared_ptr<SceneObject> makeObject(const T& mesh);
 	inline unsigned int getID() const { return this->m_objID; };
 
@@ -38,10 +36,8 @@ public:
 
 	QOpenGLBuffer vbo;
 	QOpenGLVertexArrayObject vao;
-	QVector<QVector3D> vertices;
+	QVector<Vertex> vertices;
 private:
-	QVector<QVector3D> m_normals;
-	QVector<QVector2D> m_textures;
 	
 	unsigned int m_objID;
 	static unsigned int m_idCounter;
@@ -51,33 +47,30 @@ private:
 template<typename T>
 inline static std::shared_ptr<SceneObject> SceneObject::makeObject(const T& mesh)
 {
-	if (nullptr == mesh)
+	if (nullptr == mesh) {
 		return {};
+	}
 
-	QVector<QVector3D> vertices;
-	QVector<QVector3D> normals;
-	QVector<QVector2D> textures; // add in future
-	vertices.reserve(mesh->number_of_vertices());
-	normals.reserve(mesh->number_of_vertices());
-
+	QElapsedTimer timer;
+	timer.start();
+	qDebug() << "Function makeObject started";
+	QVector<Vertex> vertices;
 	for (const auto& face : mesh->faces()) {
 		for (const auto& vertex : mesh->vertices_around_face(mesh->halfedge(face))) {
+			Vertex custom_vertex;
 			const auto& vertex_point = mesh->point(vertex);
-			vertices.push_back({
-				static_cast<float>(CGAL::to_double(vertex_point.x())),
-				static_cast<float>(CGAL::to_double(vertex_point.y())),
-				static_cast<float>(CGAL::to_double(vertex_point.z()))
-			});
-			/*auto vertex_normal = CGAL_API::computeVertexNormal(mesh, vertex);
-			normals.push_back({
-				static_cast<float>(vertex_normal.x()),
-				static_cast<float>(vertex_normal.y()),
-				static_cast<float>(vertex_normal.z())
-			});*/
+			custom_vertex.position = {
+				vertex_point.x(),
+				vertex_point.y(),
+				vertex_point.z()
+			};
+			custom_vertex.normal = CGAL_API::computeVertexNormal(mesh, vertex);
+			custom_vertex.texture = { 0, 0 };
+			vertices.push_back(custom_vertex);
 		}
 	}
-	vertices.squeeze();
-	normals.squeeze();
-
-	return std::make_shared<SceneObject>(vertices, normals, textures);
+	qint64 elapsed = timer.nsecsElapsed();
+	double elapsedSeconds = static_cast<double>(elapsed) / 1000000000.0; // Convert nanoseconds to seconds
+	qDebug() << "Function took" << elapsedSeconds << "seconds to execute";
+	return std::make_shared<SceneObject>(vertices);
 }
