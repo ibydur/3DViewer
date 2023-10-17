@@ -7,6 +7,7 @@
 #include <QElapsedTimer>
 
 #include "../include/Camera.h"
+#include "../../Scene/include/Scene.h"
 
 class OpenGLRenderer : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
 
@@ -16,17 +17,12 @@ public:
 		SOLID
 	};
 
-	OpenGLRenderer(QWidget* parent) :
-		QOpenGLWidget(parent),
-		camera(std::make_unique<Camera>())
-	{
-		setFocusPolicy(Qt::StrongFocus); // To receive keyboard focus
-		setMouseTracking(true); // Enable mouse tracking
-	}
-	//void setupVboAndVao();
-	inline void setMeshVertices(const  QVector<QVector3D>& vertices) { m_vertices = vertices; }
-	QVector3D getObjectCenter();
+	OpenGLRenderer(QWidget* parent = nullptr);
 	~OpenGLRenderer();
+
+	void addObject(const std::shared_ptr<SceneObject>& obj);
+	void drawObject(SceneObject& obj);
+	void initObjectBuffers(SceneObject& obj);
 
 protected:
 	void initializeGL() override;
@@ -40,7 +36,9 @@ protected:
 	void mouseReleaseEvent(QMouseEvent* event) override;
 
 private:
-	std::unique_ptr<Camera> camera;
+	Camera m_camera;
+	Scene  m_scene;
+
 	QPoint m_last_mouse_pos;
 
 	QMatrix4x4 m_projection;
@@ -50,15 +48,13 @@ private:
 	QOpenGLShader* m_vertex_shader;
 	QOpenGLShader* m_fragment_shader;
 	QOpenGLShaderProgram* m_shader_program;
-	GLuint m_vbo, m_vao;
 
 	float lastFrame = 0.0f;
 	float deltaTime = 0.0f;
 	bool mFirstTimeHandled = false;
 	QElapsedTimer timer;
-	QVector<QVector3D> m_vertices;
 
-	Mode drawingMode = Mode::SOLID;
+	Mode drawingMode;
 
 protected:
 	

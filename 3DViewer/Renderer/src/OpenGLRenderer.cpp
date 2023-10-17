@@ -1,30 +1,60 @@
-#include "../include/OpenGLRenderer.h"
 #include <QDir>
-#include <qevent.h>
+#include <QEvent.h>
 #include <QApplication>
 
-QVector3D OpenGLRenderer::getObjectCenter()
+#include "../include/OpenGLRenderer.h"
+
+OpenGLRenderer::OpenGLRenderer(QWidget* parent) :
+    QOpenGLWidget(parent),
+    drawingMode(Mode::SOLID),
+    m_camera(),
+    m_scene()
 {
-    QVector3D objectCenter;
-    for (const auto& vertex : m_vertices) {
-        objectCenter += vertex;
-    }
-    objectCenter /= m_vertices.size();
-    return objectCenter;
+    setFocusPolicy(Qt::StrongFocus);
+    setMouseTracking(true);
 }
 
 OpenGLRenderer::~OpenGLRenderer()
 {
-    glDisableVertexAttribArray(0);
-    glDeleteBuffers(1, &m_vbo);
-    glDeleteVertexArrays(1, &m_vao);
+    for (const auto& obj : m_scene.getObjectsLst()) {
+        obj->release();
+    }
+}
+
+void OpenGLRenderer::addObject(const std::shared_ptr<SceneObject>& obj)
+{
+    m_scene.addObjectOnScene(obj);
+}
+
+void OpenGLRenderer::drawObject(SceneObject& obj)
+{
+    obj.vao.bind();
+    glDrawArrays(GL_TRIANGLES, 0, obj.vertices.size());
+    obj.vao.release();
+}
+
+void OpenGLRenderer::initObjectBuffers(SceneObject& obj)
+{
+    obj.vao.create();
+    obj.vao.bind();
+
+    obj.vbo.create();
+    obj.vbo.setUsagePattern(QOpenGLBuffer::StreamDraw);
+    obj.vbo.bind();
+
+    obj.vbo.allocate(obj.vertices.constData(), obj.vertices.size() * sizeof(QVector3D));
+
+    m_shader_program->bind();
+    m_shader_program->enableAttributeArray(0);
+    m_shader_program->setAttributeArray(0, GL_FLOAT, 0, 3);
+
+    obj.setBuffersInited(true);
 }
 
 void OpenGLRenderer::initializeGL() {
     timer.start();
     initializeOpenGLFunctions();
     initializeShaders();
-    //setupVboAndVao();
     m_last_mouse_pos = QPoint(width() / 2.0f, height() / 2.0f);
 }
 
@@ -38,26 +68,24 @@ void OpenGLRenderer::paintGL() {
     // Use the shader program
     m_shader_program->bind();
     m_projection.setToIdentity();
-    m_projection.perspective(camera->getZoom(), static_cast<float>(width() / height()), 0.1f, 100.0f);
+    m_projection.perspective(m_camera.getZoom(), static_cast<float>(width() / height()), 0.1f, 100.0f);
     m_view.setToIdentity();
-    m_view = camera->getViewMatrix();
+    m_view = m_camera.getViewMatrix();
     m_model.setToIdentity();
-
-    // Apply translation to the model matrix
-    auto objectCenter = getObjectCenter();
-    m_model.translate(-objectCenter);
-
-    m_shader_program->setUniformValue("viewMatrix", m_view);
-    m_shader_program->setUniformValue("projectionMatrix", m_projection);
-    m_shader_program->setUniformValue("modelMatrix", m_model);
-
+    
     (drawingMode == Mode::SOLID) ? glPolygonMode(GL_FRONT_AND_BACK, GL_FILL) : glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), m_vertices.data());
-    glDrawArrays(GL_TRIANGLES, 0, m_vertices.size());
-    glDisableVertexAttribArray(0);
 
-    m_shader_program->release();
+    for (const auto& obj : m_scene.getObjectsLst()) {
+        if (!obj->isBuffersInited()) {
+            obj->intializeBuffers(this);
+        }
+        auto objCenter = obj->getObjectCenter();
+        m_model.translate(-objCenter);
+        m_shader_program->setUniformValue("viewMatrix", m_view);
+        m_shader_program->setUniformValue("projectionMatrix", m_projection);
+        m_shader_program->setUniformValue("modelMatrix", m_model);
+        obj->draw(this);
+    }
 }
 
 void OpenGLRenderer::initializeShaders() {
@@ -86,19 +114,19 @@ void OpenGLRenderer::keyPressEvent(QKeyEvent* event) {
     case Qt::Key_Escape:
         QApplication::quit();
     case Qt::Key_W:
-        camera->processKeyboard(CameraMovement::FORWARD, deltaTime);
+        m_camera.processKeyboard(CameraMovement::FORWARD, deltaTime);
         break;
     case Qt::Key_S:
-        camera->processKeyboard(CameraMovement::BACKWARD, deltaTime);
+        m_camera.processKeyboard(CameraMovement::BACKWARD, deltaTime);
         break;
     case Qt::Key_A:
-        camera->processKeyboard(CameraMovement::LEFT, deltaTime);
+        m_camera.processKeyboard(CameraMovement::LEFT, deltaTime);
         break;
     case Qt::Key_D:
-        camera->processKeyboard(CameraMovement::RIGHT, deltaTime);
+        m_camera.processKeyboard(CameraMovement::RIGHT, deltaTime);
         break;
     case Qt::Key_R:
-        camera->reset();
+        m_camera.reset();
         break;
     case Qt::Key_C:
         drawingMode = (drawingMode == Mode::SOLID) ? Mode::WIREFRAME : Mode::SOLID;
@@ -131,7 +159,7 @@ void OpenGLRenderer::mouseMoveEvent(QMouseEvent* event) {
         float yoffset =  m_last_mouse_pos.y() - event->globalY();
         m_last_mouse_pos.setX(event->globalX());
         m_last_mouse_pos.setY(event->globalY());
-        camera->processMouseMovement(xoffset, yoffset);
+        m_camera.processMouseMovement(xoffset, yoffset);
         update();
         //QOpenGLWidget::mouseMoveEvent(event);
    }
@@ -139,70 +167,6 @@ void OpenGLRenderer::mouseMoveEvent(QMouseEvent* event) {
 
 void OpenGLRenderer::wheelEvent(QWheelEvent* event) {
     int delta = event->delta();
-    camera->processMouseScroll(delta);
+    m_camera.processMouseScroll(delta);
     update();
-    //event->accept();
 }
-
-
-//
-//void OpenGLRenderer::setupVboAndVao() {
-//    glDisableVertexAttribArray(0);
-//    glDeleteBuffers(1, &m_vbo);
-//    glDeleteVertexArrays(1, &m_vao);
-//    GLfloat tmp[] = {
-//          -0.5f, -0.5f, -0.5f,  
-//           0.5f, -0.5f, -0.5f, 
-//           0.5f,  0.5f, -0.5f, 
-//           0.5f,  0.5f, -0.5f,  
-//          -0.5f,  0.5f, -0.5f, 
-//          -0.5f, -0.5f, -0.5f,  
-//
-//          -0.5f, -0.5f,  0.5f,
-//           0.5f, -0.5f,  0.5f, 
-//           0.5f,  0.5f,  0.5f,  
-//           0.5f,  0.5f,  0.5f,  
-//          -0.5f,  0.5f,  0.5f,  
-//          -0.5f, -0.5f,  0.5f,  
-//
-//          -0.5f,  0.5f,  0.5f,  
-//          -0.5f,  0.5f, -0.5f,
-//          -0.5f, -0.5f, -0.5f, 
-//          -0.5f, -0.5f, -0.5f,  
-//          -0.5f, -0.5f,  0.5f, 
-//          -0.5f,  0.5f,  0.5f, 
-//
-//           0.5f,  0.5f,  0.5f, 
-//           0.5f,  0.5f, -0.5f,  
-//           0.5f, -0.5f, -0.5f, 
-//           0.5f, -0.5f, -0.5f, 
-//           0.5f, -0.5f,  0.5f,  
-//           0.5f,  0.5f,  0.5f, 
-//
-//          -0.5f, -0.5f, -0.5f,  
-//           0.5f, -0.5f, -0.5f, 
-//           0.5f, -0.5f,  0.5f, 
-//           0.5f, -0.5f,  0.5f,  
-//          -0.5f, -0.5f,  0.5f, 
-//          -0.5f, -0.5f, -0.5f, 
-//
-//          -0.5f,  0.5f, -0.5f, 
-//           0.5f,  0.5f, -0.5f,  
-//           0.5f,  0.5f,  0.5f, 
-//           0.5f,  0.5f,  0.5f,  
-//          -0.5f,  0.5f,  0.5f, 
-//          -0.5f,  0.5f, -0.5f, 
-//    };
-//
-//    // Create vertex buffer
-//    glGenVertexArrays(1, &m_vao);
-//    glGenBuffers(1, &m_vbo);
-//    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-//    glBufferData(GL_ARRAY_BUFFER, sizeof(tmp), tmp, GL_STATIC_DRAW);
-//
-//    glBindVertexArray(m_vao);
-//    // Set up vertex attribute pointer
-//    glEnableVertexAttribArray(0);
-//    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-//    glBindVertexArray(0);
-//}
