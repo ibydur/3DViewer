@@ -2,12 +2,12 @@
 
 void Scene::addObjectOnScene(const std::shared_ptr<SceneObject>& obj)
 {
-	sceneObjectsLst.push_back(obj);
+	m_sceneObjectsLst.push_back(obj);
 }
 
 bool Scene::isEmpty()
 {
-	if (sceneObjectsLst.empty())
+	if (m_sceneObjectsLst.empty())
 		return true;
 	return false;
 }

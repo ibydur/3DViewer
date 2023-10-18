@@ -1,12 +1,12 @@
 #include "../include/3DViewer.h"
 
 Viewer::Viewer() :
-	openGLRenderer(new OpenGLRenderer(this))
+	m_openGLRenderer(new OpenGLRenderer(this))
 {
-	openGLRenderer->setFocusPolicy(Qt::StrongFocus);
-	openGLRenderer->setFocus();
+	m_openGLRenderer->setFocusPolicy(Qt::StrongFocus);
+	m_openGLRenderer->setFocus();
 
-	setCentralWidget(openGLRenderer);
+	setCentralWidget(m_openGLRenderer);
 	resize(QGuiApplication::primaryScreen()->availableSize());
 
 	createMenus();
@@ -38,7 +38,7 @@ bool Viewer::openFile(const QString& fileName) {
 	if (nullptr == mesh) {
 		return false;
 	}
-	openGLRenderer->addObject(std::move(SceneObject::makeObject(mesh)));
-	openGLRenderer->update();
+	m_openGLRenderer->addObject(std::move(SceneObject::makeObject(mesh)));
+	m_openGLRenderer->update();
 	return true;
 }

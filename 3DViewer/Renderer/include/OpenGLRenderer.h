@@ -1,5 +1,4 @@
 #pragma once
-
 #include <QOpenGLWidget>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLShader>
@@ -40,23 +39,20 @@ private:
 	Camera m_camera;
 	Scene  m_scene;
 
-	QPoint m_last_mouse_pos;
+	QPoint m_lastMousePos;
 
 	QMatrix4x4 m_projection;
 	QMatrix4x4 m_view;
 	QMatrix4x4 m_model;
 
-	QOpenGLShader* m_vertex_shader;
-	QOpenGLShader* m_fragment_shader;
-	QOpenGLShaderProgram* m_shader_program;
+	QOpenGLShader* m_vertexShader;
+	QOpenGLShader* m_fragmentShader;
+	QOpenGLShaderProgram* m_shaderProgram;
 
-	float lastFrame = 0.0f;
-	float deltaTime = 0.0f;
-	bool mFirstTimeHandled = false;
-	QElapsedTimer timer;
+	float m_lastFrame;
+	float m_deltaTime;
+	bool m_firstTimeHandled;
+	QElapsedTimer m_timer;
 
-	Mode drawingMode;
-
-protected:
-	
+	Mode m_drawingMode;
 };

@@ -13,6 +13,6 @@ public:
 	void addFile();
 	bool openFile(const QString& fileName);
 private:
-	OpenGLRenderer* openGLRenderer;
+	OpenGLRenderer* m_openGLRenderer;
 	QAction* m_openFile;
 };

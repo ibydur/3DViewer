@@ -6,9 +6,12 @@
 
 OpenGLRenderer::OpenGLRenderer(QWidget* parent) :
     QOpenGLWidget(parent),
-    drawingMode(Mode::SOLID),
+    m_drawingMode(Mode::SOLID),
     m_camera(),
-    m_scene()
+    m_scene(),
+    m_lastFrame(0.0f), 
+    m_deltaTime(0.0f),
+    m_firstTimeHandled(false)
 {
     setFocusPolicy(Qt::StrongFocus);
     setMouseTracking(true);
@@ -47,63 +50,63 @@ void OpenGLRenderer::initObjectBuffers(SceneObject& obj)
 
     obj.vbo.allocate(obj.vertices.constData(), obj.vertices.size() * sizeof(Vertex));
 
-    m_shader_program->bind();
-    //position
-    m_shader_program->enableAttributeArray(0);
-    m_shader_program->setAttributeArray(0, GL_FLOAT, 0, 3, sizeof(Vertex));
+    m_shaderProgram->bind();
+    //m_position
+    m_shaderProgram->enableAttributeArray(0);
+    m_shaderProgram->setAttributeArray(0, GL_FLOAT, 0, 3, sizeof(Vertex));
     //normal
-    m_shader_program->enableAttributeArray(1);
-    m_shader_program->setAttributeBuffer(1, GL_FLOAT, sizeof(QVector3D), 3, sizeof(Vertex));
+    m_shaderProgram->enableAttributeArray(1);
+    m_shaderProgram->setAttributeBuffer(1, GL_FLOAT, sizeof(QVector3D), 3, sizeof(Vertex));
     //texture
-    m_shader_program->enableAttributeArray(2);
-    m_shader_program->setAttributeBuffer(2, GL_FLOAT, sizeof(QVector3D) * 2, 2, sizeof(Vertex));
+    m_shaderProgram->enableAttributeArray(2);
+    m_shaderProgram->setAttributeBuffer(2, GL_FLOAT, sizeof(QVector3D) * 2, 2, sizeof(Vertex));
 
     obj.setBuffersInited(true);
 }
 
 void OpenGLRenderer::initializeGL() {
-    timer.start();
+    m_timer.start();
     initializeOpenGLFunctions();
     initializeShaders();
-    m_last_mouse_pos = QPoint(width() / 2.0f, height() / 2.0f);
+    m_lastMousePos = QPoint(width() / 2.0f, height() / 2.0f);
 }
 
 void OpenGLRenderer::paintGL() {
-    qreal elapsedTimeSeconds = static_cast<qreal>(timer.elapsed()) / 1000.0;
-    deltaTime = elapsedTimeSeconds - lastFrame;
-    lastFrame = elapsedTimeSeconds;
+    qreal elapsed_time = static_cast<qreal>(m_timer.elapsed()) / 1000.0;
+    m_deltaTime = elapsed_time - m_lastFrame;
+    m_lastFrame = elapsed_time;
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.85f, 0.85f, 0.85f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     // Use the shader program
-    m_shader_program->bind();
+    m_shaderProgram->bind();
     m_projection.setToIdentity();
     m_projection.perspective(m_camera.getZoom(), static_cast<float>(width() / height()), 0.1f, 100.0f);
     m_view.setToIdentity();
     m_view = m_camera.getViewMatrix();
     m_model.setToIdentity();
     
-    (drawingMode == Mode::SOLID) ? glPolygonMode(GL_FRONT_AND_BACK, GL_FILL) : glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    (m_drawingMode == Mode::SOLID) ? glPolygonMode(GL_FRONT_AND_BACK, GL_FILL) : glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     glEnable(GL_MULTISAMPLE);
     for (const auto& obj : m_scene.getObjectsLst()) {
         if (!obj->isBuffersInited()) {
             obj->intializeBuffers(this);
         }
-        auto objCenter = obj->getObjectCenter();
-        m_model.translate(-objCenter);
+        auto obj_center = obj->getObjectCenter();
+        m_model.translate(-obj_center);
         //vertex shader
-        m_shader_program->setUniformValue("viewMatrix", m_view);
-        m_shader_program->setUniformValue("projectionMatrix", m_projection);
-        m_shader_program->setUniformValue("modelMatrix", m_model);
+        m_shaderProgram->setUniformValue("viewMatrix", m_view);
+        m_shaderProgram->setUniformValue("projectionMatrix", m_projection);
+        m_shaderProgram->setUniformValue("modelMatrix", m_model);
         //fragment shader
-        m_shader_program->setUniformValue("lightDirectionFront", QVector3D(0.0f, 0.0f, -1.0f));
-        m_shader_program->setUniformValue("lightDirectionBack", QVector3D(0.0f, 0.0f, 1.0f));
-        m_shader_program->setUniformValue("lightColor", QVector3D(1.0f, 1.0f, 1.0f));
-        m_shader_program->setUniformValue("objectColor", QVector3D(0.7f, 0.7f, 0.7f));
-        m_shader_program->setUniformValue("ambientStrength", 0.2f);
-        m_shader_program->setUniformValue("specularStrength", 0.5f);
-        m_shader_program->setUniformValue("shininess", 32.0f);
+        m_shaderProgram->setUniformValue("lightDirectionFront", QVector3D(0.0f, 0.0f, -1.0f));
+        m_shaderProgram->setUniformValue("lightDirectionBack", QVector3D(0.0f, 0.0f, 1.0f));
+        m_shaderProgram->setUniformValue("lightColor", QVector3D(1.0f, 1.0f, 1.0f));
+        m_shaderProgram->setUniformValue("objectColor", QVector3D(0.7f, 0.7f, 0.7f));
+        m_shaderProgram->setUniformValue("ambientStrength", 0.2f);
+        m_shaderProgram->setUniformValue("specularStrength", 0.5f);
+        m_shaderProgram->setUniformValue("shininess", 32.0f);
 
         obj->draw(this);
     }
@@ -116,19 +119,19 @@ void OpenGLRenderer::initializeShaders() {
     QDir shaders_dir(source_file_dir.absoluteFilePath("../shaders")); // Path to shaders directory
 
     bool compile_result;
-    m_vertex_shader   = new QOpenGLShader(QOpenGLShader::Vertex, this);
-    compile_result    = m_vertex_shader->compileSourceFile(shaders_dir.filePath("main_vert.glsl")); // Path to vertex shader file
-    m_fragment_shader = new QOpenGLShader(QOpenGLShader::Fragment, this);
-    compile_result    = m_fragment_shader->compileSourceFile(shaders_dir.filePath("main_frag.glsl")); // Path to fragment shader file
+    m_vertexShader   = new QOpenGLShader(QOpenGLShader::Vertex, this);
+    compile_result    = m_vertexShader->compileSourceFile(shaders_dir.filePath("main_vert.glsl")); // Path to vertex shader file
+    m_fragmentShader = new QOpenGLShader(QOpenGLShader::Fragment, this);
+    compile_result    = m_fragmentShader->compileSourceFile(shaders_dir.filePath("main_frag.glsl")); // Path to fragment shader file
 
     // Create and link shader program
-    m_shader_program = new QOpenGLShaderProgram(this);
-    m_shader_program->addShader(m_vertex_shader);
-    m_shader_program->addShader(m_fragment_shader);
-    m_shader_program->link(); 
+    m_shaderProgram = new QOpenGLShaderProgram(this);
+    m_shaderProgram->addShader(m_vertexShader);
+    m_shaderProgram->addShader(m_fragmentShader);
+    m_shaderProgram->link(); 
 
-    delete m_vertex_shader;
-    delete m_fragment_shader;
+    delete m_vertexShader;
+    delete m_fragmentShader;
 }
 
 void OpenGLRenderer::keyPressEvent(QKeyEvent* event) {
@@ -136,22 +139,22 @@ void OpenGLRenderer::keyPressEvent(QKeyEvent* event) {
     case Qt::Key_Escape:
         QApplication::quit();
     case Qt::Key_W:
-        m_camera.processKeyboard(CameraMovement::FORWARD, deltaTime);
+        m_camera.processKeyboard(CameraMovement::FORWARD, m_deltaTime);
         break;
     case Qt::Key_S:
-        m_camera.processKeyboard(CameraMovement::BACKWARD, deltaTime);
+        m_camera.processKeyboard(CameraMovement::BACKWARD, m_deltaTime);
         break;
     case Qt::Key_A:
-        m_camera.processKeyboard(CameraMovement::LEFT, deltaTime);
+        m_camera.processKeyboard(CameraMovement::LEFT, m_deltaTime);
         break;
     case Qt::Key_D:
-        m_camera.processKeyboard(CameraMovement::RIGHT, deltaTime);
+        m_camera.processKeyboard(CameraMovement::RIGHT, m_deltaTime);
         break;
     case Qt::Key_R:
         m_camera.reset();
         break;
     case Qt::Key_C:
-        drawingMode = (drawingMode == Mode::SOLID) ? Mode::WIREFRAME : Mode::SOLID;
+        m_drawingMode = (m_drawingMode == Mode::SOLID) ? Mode::WIREFRAME : Mode::SOLID;
         break;
     }
     update();
@@ -164,23 +167,23 @@ void OpenGLRenderer::mousePressEvent(QMouseEvent* event)
 
 void OpenGLRenderer::mouseReleaseEvent(QMouseEvent* event)
 {
-    mFirstTimeHandled = true;
+    m_firstTimeHandled = true;
     update();
 }
 
 void OpenGLRenderer::mouseMoveEvent(QMouseEvent* event) {
     if (event->buttons() & Qt::LeftButton) {
-        if (mFirstTimeHandled)
+        if (m_firstTimeHandled)
         {
-            mFirstTimeHandled = false;
-            m_last_mouse_pos.setX(event->globalX());
-            m_last_mouse_pos.setY(event->globalY());
+            m_firstTimeHandled = false;
+            m_lastMousePos.setX(event->globalX());
+            m_lastMousePos.setY(event->globalY());
         }
 
-        float xoffset = event->globalX() - m_last_mouse_pos.x();
-        float yoffset =  m_last_mouse_pos.y() - event->globalY();
-        m_last_mouse_pos.setX(event->globalX());
-        m_last_mouse_pos.setY(event->globalY());
+        float xoffset = event->globalX() - m_lastMousePos.x();
+        float yoffset = m_lastMousePos.y() - event->globalY();
+        m_lastMousePos.setX(event->globalX());
+        m_lastMousePos.setY(event->globalY());
         m_camera.processMouseMovement(xoffset, yoffset);
         update();
         //QOpenGLWidget::mouseMoveEvent(event);

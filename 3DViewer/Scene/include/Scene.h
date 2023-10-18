@@ -8,8 +8,8 @@ public:
 	~Scene() = default;
 
 	void addObjectOnScene(const std::shared_ptr<SceneObject>& obj);
-	QVector<std::shared_ptr<SceneObject>> getObjectsLst() const { return this->sceneObjectsLst; };
+	QVector<std::shared_ptr<SceneObject>> getObjectsLst() const { return this->m_sceneObjectsLst; };
 	bool isEmpty();
 private:
-	QVector<std::shared_ptr<SceneObject>> sceneObjectsLst;
+	QVector<std::shared_ptr<SceneObject>> m_sceneObjectsLst;
 };

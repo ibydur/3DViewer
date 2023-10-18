@@ -29,8 +29,8 @@ public:
 	void intializeBuffers(OpenGLRenderer* renderer);
 	void release();
 
-	inline bool isBuffersInited() const { return this->buffersInited; };
-	inline void setBuffersInited(bool inited) { this->buffersInited = inited; };
+	inline bool isBuffersInited() const { return this->m_buffersInited; };
+	inline void setBuffersInited(bool inited) { this->m_buffersInited = inited; };
 
 	QVector3D getObjectCenter();
 
@@ -41,7 +41,7 @@ private:
 	
 	unsigned int m_objID;
 	static unsigned int m_idCounter;
-	bool buffersInited;
+	bool m_buffersInited;
 };
 
 template<typename T>

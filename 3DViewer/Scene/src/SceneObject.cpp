@@ -4,7 +4,7 @@
 unsigned int SceneObject::m_idCounter = 0;
 
 SceneObject::SceneObject(const QVector<Vertex>& vertices) :
-	vertices(vertices), m_objID(++m_idCounter), buffersInited(false)
+	vertices(vertices), m_objID(++m_idCounter), m_buffersInited(false)
 {
 }
 
