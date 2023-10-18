@@ -45,7 +45,7 @@ void Camera::processMouseMovement(float xOffset, float yOffset) {
 
 void Camera::reset()
 {
-    this->m_position = QVector3D(0.0f, 0.0f, 5.0f);
+    this->m_position = QVector3D(0.0f, 0.0f, 20.0f);
     this->m_zoom = 45.0f;
     this->m_yaw = -90.0f;
     this->m_pitch = 0.0f;

@@ -5,18 +5,19 @@
 #include <QOpenGLFunctions_3_3_Core>
 #include <QElapsedTimer>
 #include <QSurfaceFormat>
+#include <QQuaternion>
 
 #include "../include/Camera.h"
 #include "../../Scene/include/Scene.h"
 
 class OpenGLRenderer : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
-
+	static constexpr auto TRANSLATION_SPEED = 0.02f;
+	static constexpr auto ANGLE_ROTATION_SCALE = 7.0f;
 public:
 	enum class Mode {
 		WIREFRAME,
 		SOLID
 	};
-
 	OpenGLRenderer(QWidget* parent = nullptr);
 	~OpenGLRenderer();
 
@@ -36,14 +37,21 @@ protected:
 	void mouseReleaseEvent(QMouseEvent* event) override;
 
 private:
+	void reset();
+	void processTranslation(QVector3D& delta);
+	void processRotation(QVector3D& delta);
+
 	Camera m_camera;
 	Scene  m_scene;
 
-	QPoint m_lastMousePos;
+	QPointF m_lastMousePos;
 
 	QMatrix4x4 m_projection;
 	QMatrix4x4 m_view;
 	QMatrix4x4 m_model;
+
+	QQuaternion m_rotationQuaternion;
+	QVector3D m_translationVec;
 
 	QOpenGLShader* m_vertexShader;
 	QOpenGLShader* m_fragmentShader;
@@ -51,8 +59,7 @@ private:
 
 	float m_lastFrame;
 	float m_deltaTime;
-	bool m_firstTimeHandled;
-	QElapsedTimer m_timer;
 
+	QElapsedTimer m_timer;
 	Mode m_drawingMode;
 };

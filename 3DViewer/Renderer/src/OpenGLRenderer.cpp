@@ -1,6 +1,7 @@
 #include <QDir>
 #include <QEvent.h>
 #include <QApplication>
+#include <QtMath>
 
 #include "../include/OpenGLRenderer.h"
 
@@ -10,8 +11,7 @@ OpenGLRenderer::OpenGLRenderer(QWidget* parent) :
     m_camera(),
     m_scene(),
     m_lastFrame(0.0f), 
-    m_deltaTime(0.0f),
-    m_firstTimeHandled(false)
+    m_deltaTime(0.0f)
 {
     setFocusPolicy(Qt::StrongFocus);
     setMouseTracking(true);
@@ -72,7 +72,7 @@ void OpenGLRenderer::initializeGL() {
 }
 
 void OpenGLRenderer::paintGL() {
-    qreal elapsed_time = static_cast<qreal>(m_timer.elapsed()) / 1000.0;
+    auto elapsed_time = static_cast<float>(m_timer.elapsed()) / 1000.0;
     m_deltaTime = elapsed_time - m_lastFrame;
     m_lastFrame = elapsed_time;
     glEnable(GL_DEPTH_TEST);
@@ -92,9 +92,10 @@ void OpenGLRenderer::paintGL() {
     for (const auto& obj : m_scene.getObjectsLst()) {
         if (!obj->isBuffersInited()) {
             obj->intializeBuffers(this);
+            m_translationVec = -(obj->getObjectCenter());
         }
-        auto obj_center = obj->getObjectCenter();
-        m_model.translate(-obj_center);
+        m_model.translate(m_translationVec);
+        m_model.rotate(m_rotationQuaternion);
         //vertex shader
         m_shaderProgram->setUniformValue("viewMatrix", m_view);
         m_shaderProgram->setUniformValue("projectionMatrix", m_projection);
@@ -103,10 +104,10 @@ void OpenGLRenderer::paintGL() {
         m_shaderProgram->setUniformValue("lightDirectionFront", QVector3D(0.0f, 0.0f, -1.0f));
         m_shaderProgram->setUniformValue("lightDirectionBack", QVector3D(0.0f, 0.0f, 1.0f));
         m_shaderProgram->setUniformValue("lightColor", QVector3D(1.0f, 1.0f, 1.0f));
-        m_shaderProgram->setUniformValue("objectColor", QVector3D(0.7f, 0.7f, 0.7f));
+        m_shaderProgram->setUniformValue("objectColor", QVector3D(0.6f, 0.6f, 0.6f));
         m_shaderProgram->setUniformValue("ambientStrength", 0.2f);
         m_shaderProgram->setUniformValue("specularStrength", 0.5f);
-        m_shaderProgram->setUniformValue("shininess", 32.0f);
+        m_shaderProgram->setUniformValue("shininess", 128.0f);
 
         obj->draw(this);
     }
@@ -152,6 +153,7 @@ void OpenGLRenderer::keyPressEvent(QKeyEvent* event) {
         break;
     case Qt::Key_R:
         m_camera.reset();
+        this->reset();
         break;
     case Qt::Key_C:
         m_drawingMode = (m_drawingMode == Mode::SOLID) ? Mode::WIREFRAME : Mode::SOLID;
@@ -162,36 +164,67 @@ void OpenGLRenderer::keyPressEvent(QKeyEvent* event) {
 
 void OpenGLRenderer::mousePressEvent(QMouseEvent* event)
 {
-
+    if (event->button() &
+        Qt::LeftButton  &
+        Qt::RightButton &
+        (Qt::LeftButton | Qt::RightButton)) {
+        m_lastMousePos = event->globalPos();
+    }
 }
 
 void OpenGLRenderer::mouseReleaseEvent(QMouseEvent* event)
 {
-    m_firstTimeHandled = true;
-    update();
+    if (event->button() & 
+        Qt::LeftButton  & 
+        Qt::RightButton & 
+        (Qt::LeftButton | Qt::RightButton)) {
+        m_lastMousePos = event->globalPos();
+    }
 }
 
 void OpenGLRenderer::mouseMoveEvent(QMouseEvent* event) {
-    if (event->buttons() & Qt::LeftButton) {
-        if (m_firstTimeHandled)
-        {
-            m_firstTimeHandled = false;
-            m_lastMousePos.setX(event->globalX());
-            m_lastMousePos.setY(event->globalY());
-        }
-
-        float xoffset = event->globalX() - m_lastMousePos.x();
-        float yoffset = m_lastMousePos.y() - event->globalY();
-        m_lastMousePos.setX(event->globalX());
-        m_lastMousePos.setY(event->globalY());
-        m_camera.processMouseMovement(xoffset, yoffset);
-        update();
-        //QOpenGLWidget::mouseMoveEvent(event);
-   }
+    auto delta_pos = event->globalPos() - m_lastMousePos;
+	QVector3D delta_vec = { 
+        static_cast<float>(delta_pos.x()),
+        static_cast<float>(delta_pos.y()),
+        0.0f
+    };
+	if (event->buttons() == (Qt::LeftButton | Qt::RightButton)) {
+        processTranslation(delta_vec);
+	}
+	else if (event->buttons() & Qt::RightButton) {
+		m_camera.processMouseMovement(delta_vec.x(), -delta_vec.y());
+	}
+	else if (event->buttons() & Qt::LeftButton) {
+        processRotation(delta_vec);
+	}
+	m_lastMousePos = event->globalPos();
+	update();
 }
 
 void OpenGLRenderer::wheelEvent(QWheelEvent* event) {
     int delta = event->delta();
     m_camera.processMouseScroll(delta);
     update();
+}
+
+void OpenGLRenderer::reset()
+{
+    m_rotationQuaternion = QQuaternion::fromAxisAndAngle({ 0, 0, 0 }, 0);
+    m_translationVec = { 0.0f, 0.0f, 0.0f };
+    update();
+}
+
+void OpenGLRenderer::processTranslation(QVector3D& delta)
+{
+    delta.setY(delta.y() * -1.0f);
+    m_translationVec += delta * TRANSLATION_SPEED;
+}
+
+void OpenGLRenderer::processRotation(QVector3D& delta)
+{
+    auto angle = qDegreesToRadians(delta.length()) * ANGLE_ROTATION_SCALE;
+    QVector3D axis = QVector3D(delta.y(), delta.x(), 0).normalized();
+    QQuaternion rotation = QQuaternion::fromAxisAndAngle(axis, angle);
+    m_rotationQuaternion *= rotation;
 }
