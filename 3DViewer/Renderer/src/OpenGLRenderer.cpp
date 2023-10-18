@@ -12,6 +12,9 @@ OpenGLRenderer::OpenGLRenderer(QWidget* parent) :
 {
     setFocusPolicy(Qt::StrongFocus);
     setMouseTracking(true);
+    QSurfaceFormat format;
+    format.setSamples(4);
+    setFormat(format);
 }
 
 OpenGLRenderer::~OpenGLRenderer()
@@ -82,6 +85,7 @@ void OpenGLRenderer::paintGL() {
     
     (drawingMode == Mode::SOLID) ? glPolygonMode(GL_FRONT_AND_BACK, GL_FILL) : glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+    glEnable(GL_MULTISAMPLE);
     for (const auto& obj : m_scene.getObjectsLst()) {
         if (!obj->isBuffersInited()) {
             obj->intializeBuffers(this);
@@ -102,6 +106,7 @@ void OpenGLRenderer::paintGL() {
 
         obj->draw(this);
     }
+    glDisable(GL_MULTISAMPLE);
 }
 
 void OpenGLRenderer::initializeShaders() {

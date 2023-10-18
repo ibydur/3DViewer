@@ -5,6 +5,7 @@
 #include <QOpenGLShader>
 #include <QOpenGLFunctions_3_3_Core>
 #include <QElapsedTimer>
+#include <QSurfaceFormat>
 
 #include "../include/Camera.h"
 #include "../../Scene/include/Scene.h"
