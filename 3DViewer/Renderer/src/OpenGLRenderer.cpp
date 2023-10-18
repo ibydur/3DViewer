@@ -97,7 +97,8 @@ void OpenGLRenderer::paintGL() {
         m_shader_program->setUniformValue("projectionMatrix", m_projection);
         m_shader_program->setUniformValue("modelMatrix", m_model);
         //fragment shader
-        m_shader_program->setUniformValue("lightDirection", QVector3D(0.0f, 10.0f, 0.0f));
+        m_shader_program->setUniformValue("lightDirectionFront", QVector3D(0.0f, 0.0f, -1.0f));
+        m_shader_program->setUniformValue("lightDirectionBack", QVector3D(0.0f, 0.0f, 1.0f));
         m_shader_program->setUniformValue("lightColor", QVector3D(1.0f, 1.0f, 1.0f));
         m_shader_program->setUniformValue("objectColor", QVector3D(0.7f, 0.7f, 0.7f));
         m_shader_program->setUniformValue("ambientStrength", 0.2f);
