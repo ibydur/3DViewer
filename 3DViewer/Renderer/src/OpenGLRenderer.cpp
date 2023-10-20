@@ -13,8 +13,10 @@ OpenGLRenderer::OpenGLRenderer(QWidget* parent) :
     m_lastFrame(0.0f), 
     m_deltaTime(0.0f)
 {
-    setFocusPolicy(Qt::StrongFocus);
+    resize(parent->width(), parent->height());
+    setFocusPolicy(parent->focusPolicy());
     setMouseTracking(true);
+
     QSurfaceFormat format;
     format.setSamples(4);
     setFormat(format);
@@ -71,6 +73,35 @@ void OpenGLRenderer::initializeGL() {
     m_lastMousePos = QPoint(width() / 2.0f, height() / 2.0f);
 }
 
+void OpenGLRenderer::calculateFPS() {
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsedTime = currentTime - m_lastFrameTime;
+    m_lastFrameTime = currentTime;
+    double fps = 1.0 / elapsedTime.count();
+    emit framerateUpdated(QString::number(fps, 'f', 2));
+}
+
+void OpenGLRenderer::updateSceneStatus()
+{
+    auto active_objs = m_scene.getActiveObjects();
+    if (active_objs.empty()) {
+        emit sceneStatusUpdated(QString("scene is empty "));
+    }
+    else {
+        auto active_objs = m_scene.getActiveObjects();
+        if (active_objs.size() == 1) {
+            emit sceneStatusUpdated(QStringLiteral("object with id %1 has been loaded ").arg(active_objs.at(0)));
+        }
+        else {
+            QStringList strList;
+            for (unsigned int value : active_objs) {
+                strList.append(QString::number(value));
+            }
+            emit sceneStatusUpdated(QString("objects with id " + strList.join(", ") + " have been loaded "));
+        }
+    }
+}
+
 void OpenGLRenderer::paintGL() {
     auto elapsed_time = static_cast<float>(m_timer.elapsed()) / 1000.0;
     m_deltaTime = elapsed_time - m_lastFrame;
@@ -85,7 +116,6 @@ void OpenGLRenderer::paintGL() {
     m_view.setToIdentity();
     m_view = m_camera.getViewMatrix();
     m_model.setToIdentity();
-    
     (m_drawingMode == Mode::SOLID) ? glPolygonMode(GL_FRONT_AND_BACK, GL_FILL) : glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     glEnable(GL_MULTISAMPLE);
@@ -112,6 +142,9 @@ void OpenGLRenderer::paintGL() {
         obj->draw(this);
     }
     glDisable(GL_MULTISAMPLE);
+
+    calculateFPS();
+    updateSceneStatus();
 }
 
 void OpenGLRenderer::initializeShaders() {
@@ -182,7 +215,9 @@ void OpenGLRenderer::mouseReleaseEvent(QMouseEvent* event)
     }
 }
 
-void OpenGLRenderer::mouseMoveEvent(QMouseEvent* event) {
+void OpenGLRenderer::mouseMoveEvent(QMouseEvent* event) 
+{
+    emit mouseMoved(QStringLiteral("x = %1, y = %2").arg(event->pos().x()).arg(event->pos().y()));
     auto delta_pos = event->globalPos() - m_lastMousePos;
 	QVector3D delta_vec = { 
         static_cast<float>(delta_pos.x()),

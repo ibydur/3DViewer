@@ -5,9 +5,13 @@ void Scene::addObjectOnScene(const std::shared_ptr<SceneObject>& obj)
 	m_sceneObjectsLst.push_back(obj);
 }
 
-bool Scene::isEmpty()
+QVector<unsigned int> Scene::getActiveObjects()
 {
-	if (m_sceneObjectsLst.empty())
-		return true;
-	return false;
+	QVector<unsigned int> result;
+	for (const auto& obj : m_sceneObjectsLst) {
+		if (obj->isActive()) {
+			result.push_back(obj->getID());
+		}
+	}
+	return result;
 }

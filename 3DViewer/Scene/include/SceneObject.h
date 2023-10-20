@@ -24,6 +24,7 @@ public:
 	SceneObject(const QVector<Vertex>& vertices);
 	template <typename T> inline static std::shared_ptr<SceneObject> makeObject(const T& mesh);
 	inline unsigned int getID() const { return this->m_objID; };
+	inline bool isActive() const { return this->m_isActive; };
 
 	void draw(OpenGLRenderer* renderer);
 	void intializeBuffers(OpenGLRenderer* renderer);
@@ -38,7 +39,7 @@ public:
 	QOpenGLVertexArrayObject vao;
 	QVector<Vertex> vertices;
 private:
-	
+	bool m_isActive;
 	unsigned int m_objID;
 	static unsigned int m_idCounter;
 	bool m_buffersInited;

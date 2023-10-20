@@ -9,7 +9,7 @@ public:
 
 	void addObjectOnScene(const std::shared_ptr<SceneObject>& obj);
 	QVector<std::shared_ptr<SceneObject>> getObjectsLst() const { return this->m_sceneObjectsLst; };
-	bool isEmpty();
+	QVector<unsigned int> getActiveObjects();
 private:
 	QVector<std::shared_ptr<SceneObject>> m_sceneObjectsLst;
 };

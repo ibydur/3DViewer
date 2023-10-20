@@ -11,6 +11,7 @@
 #include "../../Scene/include/Scene.h"
 
 class OpenGLRenderer : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
+	Q_OBJECT
 	static constexpr auto TRANSLATION_SPEED = 0.02f;
 	static constexpr auto ANGLE_ROTATION_SCALE = 7.0f;
 public:
@@ -25,6 +26,11 @@ public:
 	void drawObject(SceneObject& obj);
 	void initObjectBuffers(SceneObject& obj);
 
+signals:
+	void mouseMoved(QString);
+	void framerateUpdated(QString);
+	void sceneStatusUpdated(QString);
+
 protected:
 	void initializeGL() override;
 	void paintGL() override;
@@ -37,6 +43,8 @@ protected:
 	void mouseReleaseEvent(QMouseEvent* event) override;
 
 private:
+	void calculateFPS();
+	void updateSceneStatus();
 	void reset();
 	void processTranslation(QVector3D& delta);
 	void processRotation(QVector3D& delta);
@@ -62,4 +70,5 @@ private:
 
 	QElapsedTimer m_timer;
 	Mode m_drawingMode;
+	std::chrono::high_resolution_clock::time_point m_lastFrameTime;
 };
