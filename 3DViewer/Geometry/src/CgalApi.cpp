@@ -18,6 +18,7 @@ std::unique_ptr<Surface_mesh> CGAL_API::constructMeshFromObj(const std::string& 
     }
     qDebug() << "Obj reading has been ended: " << file_path.c_str();
     input.close();
+    checkConstructedMesh(mesh, file_path);
     return mesh;
 }
 
@@ -31,4 +32,14 @@ QVector3D CGAL_API::computeVertexNormal(const std::unique_ptr<Surface_mesh>& mes
         vertex_normal.y(), 
         vertex_normal.z()
     );
+}
+
+void CGAL_API::checkConstructedMesh(const std::unique_ptr<Surface_mesh>& mesh, const std::string& filepath)
+{
+    if (mesh->is_empty()) {
+        qCritical() << "CGAL API error: Mesh constructed from " << filepath.c_str() << " apear to be empty.";
+    }
+    else if (!mesh->is_valid()) {
+        qCritical() << "CGAL API error: Mesh constructed from " << filepath.c_str() << " apear to be invalid.";
+    }
 }

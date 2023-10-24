@@ -13,4 +13,5 @@ typedef CGAL::Surface_mesh<Point_3> Surface_mesh;
 namespace CGAL_API {
    std::unique_ptr<Surface_mesh> constructMeshFromObj(const std::string& file_path);
    QVector3D computeVertexNormal(const std::unique_ptr<Surface_mesh>& mesh, const CGAL::SM_Vertex_index& vertex);
+   void checkConstructedMesh(const std::unique_ptr<Surface_mesh>& mesh, const std::string& filepath);
 }
