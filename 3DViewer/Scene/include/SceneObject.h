@@ -5,6 +5,7 @@
 #include <QOpenGLBuffer>
 #include <QOpenGLVertexArrayObject.h>
 #include <QElapsedTimer> 
+#include <QQuaternion>
 #include <QDir>
 
 #include "../../Geometry/include/CgalApi.h"
@@ -31,6 +32,7 @@ public:
 	void intializeBuffers(OpenGLRenderer* renderer);
 	void release();
 	void calculateDimensions();
+	void reset();
 
 	inline constexpr unsigned int getNumberOfVertices() const { return this->m_num_vertices; };
 	inline constexpr unsigned int getNumberOfFaces()    const { return this->m_num_faces; };
@@ -43,7 +45,13 @@ public:
 	inline bool					  isActive()			const { return this->m_isActive; };
 	inline unsigned int			  getID()				const { return this->m_objID; };
 	inline bool					  isBuffersInited()		const { return this->m_buffersInited; };
-	inline void					  setBuffersInited(bool inited) { this->m_buffersInited = inited; };
+	inline QVector3D			  getTranslationVec()	const { return this->m_translationVec; };
+	inline QQuaternion			  getRotationQuart()	const { return this->m_rotationQuaternion; };
+
+	inline void					  setBuffersInited(bool inited)			     { this->m_buffersInited = inited; };
+	inline void					  setTranslationVec(const QVector3D& vec)    { this->m_translationVec = vec; };
+	inline void					  setRotationQuart(const QQuaternion& quart) { this->m_rotationQuaternion = quart; };
+
 	QVector3D getObjectCenter();
 
 	QOpenGLBuffer vbo;
@@ -64,6 +72,8 @@ private:
 	float m_width;
 	float m_height;
 	float m_length;
+	QQuaternion m_rotationQuaternion;
+	QVector3D m_translationVec;
 };
 
 template<typename T>

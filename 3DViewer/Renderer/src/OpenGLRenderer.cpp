@@ -8,9 +8,7 @@ OpenGLRenderer::OpenGLRenderer(QWidget* parent) :
     QOpenGLWidget(parent),
     m_drawingMode(Mode::SOLID),
     m_camera(),
-    m_scene(),
-    m_lastFrame(0.0f), 
-    m_deltaTime(0.0f)
+    m_scene()
 {
     setFocusPolicy(parent->focusPolicy());
     setMouseTracking(true);
@@ -115,10 +113,8 @@ void OpenGLRenderer::updateObjDetails(const std::shared_ptr<SceneObject>& obj)
     emit lengthUpdated(QString::number(obj->getLength(), 'f', 2) + " cm");
 }
 
-void OpenGLRenderer::paintGL() {
-	auto elapsed_time = static_cast<float>(m_timer.elapsed()) / 1000.0;
-	m_deltaTime = elapsed_time - m_lastFrame;
-	m_lastFrame = elapsed_time;
+void OpenGLRenderer::paintGL() 
+{
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.85f, 0.85f, 0.85f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -130,17 +126,15 @@ void OpenGLRenderer::paintGL() {
 	m_view = m_camera.getViewMatrix();
 	m_model.setToIdentity();
 	(m_drawingMode == Mode::SOLID) ? glPolygonMode(GL_FRONT_AND_BACK, GL_FILL) : glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-	
-	auto obj = m_scene.getCurrentObjSelection();
-    if (nullptr != obj) {
+	std::shared_ptr<SceneObject> current_obj = m_scene.getCurrentObjSelection();
+    if (nullptr != current_obj) {
         glEnable(GL_MULTISAMPLE);
-        if (!obj->isBuffersInited()) {
-            obj->intializeBuffers(this);
-            m_translationVec = -(obj->getObjectCenter());
+        if (!current_obj->isBuffersInited()) {
+            current_obj->intializeBuffers(this);
+            current_obj->setTranslationVec(-current_obj->getObjectCenter());
         }
-        m_model.translate(m_translationVec);
-        m_model.rotate(m_rotationQuaternion);
+        m_model.translate(current_obj->getTranslationVec());
+        m_model.rotate(current_obj->getRotationQuart());
         //vertex shader
         m_shaderProgram->setUniformValue("viewMatrix", m_view);
         m_shaderProgram->setUniformValue("projectionMatrix", m_projection);
@@ -154,12 +148,10 @@ void OpenGLRenderer::paintGL() {
         m_shaderProgram->setUniformValue("specularStrength", 0.5f);
         m_shaderProgram->setUniformValue("shininess", 128.0f);
 
-        obj->draw(this);
-        updateObjDetails(obj);
-
+        current_obj->draw(this);
+        updateObjDetails(current_obj);
         glDisable(GL_MULTISAMPLE);
     }
-
 	calculateFPS();
 	updateSceneStatus();
 }
@@ -190,16 +182,16 @@ void OpenGLRenderer::keyPressEvent(QKeyEvent* event) {
     case Qt::Key_Escape:
         QApplication::quit();
     case Qt::Key_W:
-        m_camera.processKeyboard(CameraMovement::FORWARD, m_deltaTime);
+        m_camera.processKeyboard(CameraMovement::FORWARD, 0);
         break;
     case Qt::Key_S:
-        m_camera.processKeyboard(CameraMovement::BACKWARD, m_deltaTime);
+        m_camera.processKeyboard(CameraMovement::BACKWARD, 0);
         break;
     case Qt::Key_A:
-        m_camera.processKeyboard(CameraMovement::LEFT, m_deltaTime);
+        m_camera.processKeyboard(CameraMovement::LEFT, 0);
         break;
     case Qt::Key_D:
-        m_camera.processKeyboard(CameraMovement::RIGHT, m_deltaTime);
+        m_camera.processKeyboard(CameraMovement::RIGHT, 0);
         break;
     case Qt::Key_R:
         m_camera.reset();
@@ -262,15 +254,17 @@ void OpenGLRenderer::wheelEvent(QWheelEvent* event) {
 
 void OpenGLRenderer::reset()
 {
-    m_rotationQuaternion = QQuaternion::fromAxisAndAngle({ 0, 0, 0 }, 0);
-    m_translationVec = { 0.0f, 0.0f, 0.0f };
-    update();
+    if (m_scene.getCurrentObjSelection() != nullptr)
+        m_scene.getCurrentObjSelection()->reset();
 }
 
 void OpenGLRenderer::processTranslation(QVector3D& delta)
 {
     delta.setY(delta.y() * -1.0f);
-    m_translationVec += delta * TRANSLATION_SPEED;
+    auto current_obj = m_scene.getCurrentObjSelection();
+    if (nullptr != current_obj) {
+        current_obj->setTranslationVec(current_obj->getTranslationVec() + delta * TRANSLATION_SPEED);
+    }
 }
 
 void OpenGLRenderer::processRotation(QVector3D& delta)
@@ -278,5 +272,8 @@ void OpenGLRenderer::processRotation(QVector3D& delta)
     auto angle = qDegreesToRadians(delta.length()) * ANGLE_ROTATION_SCALE;
     QVector3D axis = QVector3D(delta.y(), delta.x(), 0).normalized();
     QQuaternion rotation = QQuaternion::fromAxisAndAngle(axis, angle);
-    m_rotationQuaternion *= rotation;
+    auto current_obj = m_scene.getCurrentObjSelection();
+    if (nullptr != current_obj) {
+        current_obj->setRotationQuart(current_obj->getRotationQuart() * rotation);
+    }
 }

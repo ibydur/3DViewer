@@ -5,7 +5,6 @@
 #include <QOpenGLFunctions_3_3_Core>
 #include <QElapsedTimer>
 #include <QSurfaceFormat>
-#include <QQuaternion>
 #include <QListWidget>
 
 #include "../include/Camera.h"
@@ -42,6 +41,7 @@ signals:
 	void nameUpdated(QString);
 	void sceneUpdated(const std::shared_ptr<SceneObject>&);
 	void sceneItemChanged(QListWidgetItem*, QListWidgetItem*);
+
 protected:
 	void initializeGL() override;
 	void paintGL() override;
@@ -70,15 +70,9 @@ private:
 	QMatrix4x4 m_view;
 	QMatrix4x4 m_model;
 
-	QQuaternion m_rotationQuaternion;
-	QVector3D m_translationVec;
-
 	QOpenGLShader* m_vertexShader;
 	QOpenGLShader* m_fragmentShader;
 	QOpenGLShaderProgram* m_shaderProgram;
-
-	float m_lastFrame;
-	float m_deltaTime;
 
 	QElapsedTimer m_timer;
 	Mode m_drawingMode;

@@ -57,3 +57,9 @@ void SceneObject::calculateDimensions()
     m_width  = (maxCoords.y() - minCoords.y()) * 100.0f;
     m_height = (maxCoords.z() - minCoords.z()) * 100.0f;
 }
+
+void SceneObject::reset()
+{
+    m_rotationQuaternion = QQuaternion::fromAxisAndAngle({ 0, 0, 0 }, 0);
+    m_translationVec = -getObjectCenter();
+}
