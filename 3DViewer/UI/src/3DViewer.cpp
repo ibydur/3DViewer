@@ -14,7 +14,7 @@ Viewer::Viewer(QWidget *parent) :
     ui->setupUi(this);
     m_openGLRenderer = new OpenGLRenderer(ui->openGLWidget);
     connectSignalsSlots();
-    createStatusBar();
+    createStatusBar(); 
 }
 
 Viewer::~Viewer()
@@ -22,20 +22,30 @@ Viewer::~Viewer()
     delete ui;
 }
 
+void Viewer::addFileToTreeList(const QString& file, unsigned int objId)
+{
+    auto item = new QListWidgetItem(file);
+    item->setData(Qt::UserRole, objId);
+    ui->objsListWidget->addItem(item);
+    ui->objsListWidget->setCurrentItem(item);
+}
+
 void Viewer::resizeEvent(QResizeEvent* event)
 {
-    ui->openGLWidget->resize(event->size().width()-200, event->size().height());
-    m_openGLRenderer->resize(event->size().width()-200, event->size().height());
+    m_openGLRenderer->setFixedSize(ui->openGLWidget->size());
 }
 
 bool Viewer::openFile(const QString& file)
 {
+    auto str = file.toStdString();
     auto mesh = CGAL_API::constructMeshFromObj(file.toStdString());
     if (nullptr == mesh) {
         qCritical() << "Something went wrong while loading obj. Mesh wasn't constructed.";
         return false;
     }
-    m_openGLRenderer->addObject(std::move(SceneObject::makeObject(mesh)));
+    auto obj = SceneObject::makeObject(QFileInfo(file).baseName(), mesh);
+    addFileToTreeList(file, obj->getID());
+    emit sceneUpdated(obj);
     return true;
 }
 
@@ -44,10 +54,25 @@ void Viewer::connectSignalsSlots()
     //menu action
     connect(ui->actionOpen, &QAction::triggered, this, &Viewer::loadObject);
 
+    //details frame
+    connect(m_openGLRenderer, &OpenGLRenderer::verticesUpdated, ui->objDataVerticesLbl, &QLabel::setText);
+    connect(m_openGLRenderer, &OpenGLRenderer::facesUpdated,    ui->objDataFacesLbl,    &QLabel::setText);
+    connect(m_openGLRenderer, &OpenGLRenderer::edgesUpdated,    ui->objDataEdgesLbl,    &QLabel::setText);
+    connect(m_openGLRenderer, &OpenGLRenderer::IdUpdated,       ui->objDataIdLbl,       &QLabel::setText);
+    connect(m_openGLRenderer, &OpenGLRenderer::widthUpdated,    ui->objDataWidthLbl,    &QLabel::setText);
+    connect(m_openGLRenderer, &OpenGLRenderer::heightUpdated,   ui->objDataHeightLbl,   &QLabel::setText);
+    connect(m_openGLRenderer, &OpenGLRenderer::lengthUpdated,   ui->objDataLengthLbl,   &QLabel::setText);
+    connect(m_openGLRenderer, &OpenGLRenderer::nameUpdated,     ui->objDataNameLbl,     &QLabel::setText);
+
     //status bar
-    connect(m_openGLRenderer, &OpenGLRenderer::mouseMoved, m_mousePosLbl, &QLabel::setText);
-    connect(m_openGLRenderer, &OpenGLRenderer::framerateUpdated, m_framerateLbl, &QLabel::setText);
-    connect(m_openGLRenderer, &OpenGLRenderer::sceneStatusUpdated, m_statusLbl, &QLabel::setText);
+    connect(m_openGLRenderer, &OpenGLRenderer::mouseMoved,         m_mousePosLbl,       &QLabel::setText);
+    connect(m_openGLRenderer, &OpenGLRenderer::framerateUpdated,   m_framerateLbl,      &QLabel::setText);
+    connect(m_openGLRenderer, &OpenGLRenderer::sceneStatusUpdated, m_statusLbl,         &QLabel::setText);
+
+    connect(this, &Viewer::sceneUpdated, m_openGLRenderer, &OpenGLRenderer::sceneUpdated);
+    
+    //tree view
+    connect(ui->objsListWidget, &QListWidget::currentItemChanged, m_openGLRenderer, &OpenGLRenderer::sceneItemChanged);
 }
 
 void Viewer::createStatusBar()

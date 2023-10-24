@@ -6,9 +6,11 @@
 #include <QElapsedTimer>
 #include <QSurfaceFormat>
 #include <QQuaternion>
+#include <QListWidget>
 
 #include "../include/Camera.h"
 #include "../../Scene/include/Scene.h"
+
 
 class OpenGLRenderer : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
 	Q_OBJECT
@@ -30,7 +32,16 @@ signals:
 	void mouseMoved(QString);
 	void framerateUpdated(QString);
 	void sceneStatusUpdated(QString);
-
+	void verticesUpdated(QString);
+	void edgesUpdated(QString);
+	void facesUpdated(QString);
+	void IdUpdated(QString);
+	void widthUpdated(QString);
+	void lengthUpdated(QString);
+	void heightUpdated(QString);
+	void nameUpdated(QString);
+	void sceneUpdated(const std::shared_ptr<SceneObject>&);
+	void sceneItemChanged(QListWidgetItem*, QListWidgetItem*);
 protected:
 	void initializeGL() override;
 	void paintGL() override;
@@ -45,6 +56,7 @@ protected:
 private:
 	void calculateFPS();
 	void updateSceneStatus();
+	void updateObjDetails(const std::shared_ptr<SceneObject>& obj);
 	void reset();
 	void processTranslation(QVector3D& delta);
 	void processRotation(QVector3D& delta);

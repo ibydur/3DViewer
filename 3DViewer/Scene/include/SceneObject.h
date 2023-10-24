@@ -21,32 +21,50 @@ public:
 	 SceneObject() = default;
 	~SceneObject() = default;
 	SceneObject(const SceneObject&) = delete;
-	SceneObject(const QVector<Vertex>& vertices);
-	template <typename T> inline static std::shared_ptr<SceneObject> makeObject(const T& mesh);
-	inline unsigned int getID() const { return this->m_objID; };
-	inline bool isActive() const { return this->m_isActive; };
+	SceneObject(const QString& name, const QVector<Vertex>& vertices,
+		unsigned int vertices_count, unsigned int faces_count, unsigned int edges_count);
+
+	template <typename T> inline static std::shared_ptr<SceneObject> makeObject(const QString& name, const T& mesh);
 
 	void draw(OpenGLRenderer* renderer);
 	void intializeBuffers(OpenGLRenderer* renderer);
 	void release();
+	void calculateDimensions();
 
-	inline bool isBuffersInited() const { return this->m_buffersInited; };
-	inline void setBuffersInited(bool inited) { this->m_buffersInited = inited; };
-
+	inline constexpr unsigned int getNumberOfVertices() const { return this->m_num_vertices; };
+	inline constexpr unsigned int getNumberOfFaces()    const { return this->m_num_faces; };
+	inline constexpr unsigned int getNumberOfEdges()    const { return this->m_num_edges; }
+	inline constexpr float		  getWidth()			const { return this->m_width; };
+	inline constexpr float		  getHeight()			const { return this->m_height; };
+	inline constexpr float		  getLength()			const { return this->m_length; }
+	inline QString				  getName()				const { return this->m_name; }
+	inline bool					  isActive()			const { return this->m_isActive; };
+	inline unsigned int			  getID()				const { return this->m_objID; };
+	inline bool					  isBuffersInited()		const { return this->m_buffersInited; };
+	inline void					  setBuffersInited(bool inited) { this->m_buffersInited = inited; };
 	QVector3D getObjectCenter();
 
 	QOpenGLBuffer vbo;
 	QOpenGLVertexArrayObject vao;
 	QVector<Vertex> vertices;
+
 private:
+	QString m_name;
 	bool m_isActive;
 	unsigned int m_objID;
 	static unsigned int m_idCounter;
 	bool m_buffersInited;
+	// obj data
+	unsigned int m_num_vertices;
+	unsigned int m_num_faces;
+	unsigned int m_num_edges;
+	float m_width;
+	float m_height;
+	float m_length;
 };
 
 template<typename T>
-inline static std::shared_ptr<SceneObject> SceneObject::makeObject(const T& mesh)
+inline static std::shared_ptr<SceneObject> SceneObject::makeObject(const QString& name, const T& mesh)
 {
 	if (nullptr == mesh) {
 		return {};
@@ -73,5 +91,12 @@ inline static std::shared_ptr<SceneObject> SceneObject::makeObject(const T& mesh
 	qint64 elapsed = timer.nsecsElapsed();
 	double elapsedSeconds = static_cast<double>(elapsed) / 1000000000.0; // Convert nanoseconds to seconds
 	qDebug() << "Function took" << elapsedSeconds << "seconds to execute";
-	return std::make_shared<SceneObject>(vertices);
+
+	return std::make_shared<SceneObject>(
+		name,
+		vertices,
+		mesh->number_of_vertices(),
+		mesh->number_of_faces(),
+		mesh->number_of_edges()
+	);
 }

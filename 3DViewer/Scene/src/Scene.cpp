@@ -3,6 +3,13 @@
 void Scene::addObjectOnScene(const std::shared_ptr<SceneObject>& obj)
 {
 	m_sceneObjectsLst.push_back(obj);
+	m_currentSelection = obj;
+}
+
+void Scene::handleSceneItemChanged(QListWidgetItem* current, QListWidgetItem* previous)
+{
+	auto current_id = current->data(Qt::UserRole);
+	m_currentSelection = std::move(getObjectByID(current_id.toUInt()));
 }
 
 QVector<unsigned int> Scene::getActiveObjects()
@@ -14,4 +21,14 @@ QVector<unsigned int> Scene::getActiveObjects()
 		}
 	}
 	return result;
+}
+
+std::shared_ptr<SceneObject> Scene::getObjectByID(unsigned int id) const
+{
+	for (const auto& obj : m_sceneObjectsLst) {
+		if (id == obj->getID()) {
+			return obj;
+		}
+	}
+	return nullptr;
 }

@@ -17,11 +17,13 @@ class Viewer : public QMainWindow
 public:
     explicit Viewer(QWidget *parent = nullptr);
     ~Viewer();
+    void addFileToTreeList(const QString& file, unsigned int objId);
 public slots:
     void loadObject();
+signals:
+    void sceneUpdated(const std::shared_ptr<SceneObject>&);
 protected:
     void resizeEvent(QResizeEvent* event) override;
-
 private:
     bool openFile(const QString& file);
 
@@ -31,6 +33,7 @@ private:
     OpenGLRenderer* m_openGLRenderer;
     Ui::Viewer *ui;
 
+    //status bar
     QLabel* m_mousePosLbl;
     QLabel* m_framerateLbl;
     QLabel* m_statusLbl;

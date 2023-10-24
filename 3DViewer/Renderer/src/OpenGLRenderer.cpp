@@ -13,13 +13,15 @@ OpenGLRenderer::OpenGLRenderer(QWidget* parent) :
     m_lastFrame(0.0f), 
     m_deltaTime(0.0f)
 {
-    resize(parent->width(), parent->height());
     setFocusPolicy(parent->focusPolicy());
     setMouseTracking(true);
-
+    //anti-alising
     QSurfaceFormat format;
     format.setSamples(4);
     setFormat(format);
+
+    connect(this, &OpenGLRenderer::sceneUpdated, &m_scene, &Scene::addObjectOnScene);
+    connect(this, &OpenGLRenderer::sceneItemChanged, &m_scene, &Scene::handleSceneItemChanged);
 }
 
 OpenGLRenderer::~OpenGLRenderer()
@@ -102,24 +104,38 @@ void OpenGLRenderer::updateSceneStatus()
     }
 }
 
-void OpenGLRenderer::paintGL() {
-    auto elapsed_time = static_cast<float>(m_timer.elapsed()) / 1000.0;
-    m_deltaTime = elapsed_time - m_lastFrame;
-    m_lastFrame = elapsed_time;
-    glEnable(GL_DEPTH_TEST);
-    glClearColor(0.85f, 0.85f, 0.85f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    // Use the shader program
-    m_shaderProgram->bind();
-    m_projection.setToIdentity();
-    m_projection.perspective(m_camera.getZoom(), static_cast<float>(width() / height()), 0.1f, 100.0f);
-    m_view.setToIdentity();
-    m_view = m_camera.getViewMatrix();
-    m_model.setToIdentity();
-    (m_drawingMode == Mode::SOLID) ? glPolygonMode(GL_FRONT_AND_BACK, GL_FILL) : glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+void OpenGLRenderer::updateObjDetails(const std::shared_ptr<SceneObject>& obj)
+{
+    emit nameUpdated(obj->getName());
+    emit verticesUpdated(QString::number(obj->getNumberOfVertices()));
+    emit facesUpdated(QString::number(obj->getNumberOfFaces()));
+    emit edgesUpdated(QString::number(obj->getNumberOfEdges()));
+    emit IdUpdated(QString::number(obj->getID()));
+    emit widthUpdated(QString::number(obj->getWidth(),   'f', 2) + " cm");
+    emit heightUpdated(QString::number(obj->getHeight(), 'f', 2) + " cm");
+    emit lengthUpdated(QString::number(obj->getLength(), 'f', 2) + " cm");
+}
 
-    glEnable(GL_MULTISAMPLE);
-    for (const auto& obj : m_scene.getObjectsLst()) {
+void OpenGLRenderer::paintGL() {
+	auto elapsed_time = static_cast<float>(m_timer.elapsed()) / 1000.0;
+	m_deltaTime = elapsed_time - m_lastFrame;
+	m_lastFrame = elapsed_time;
+	glEnable(GL_DEPTH_TEST);
+	glClearColor(0.85f, 0.85f, 0.85f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	// Use the shader program
+	m_shaderProgram->bind();
+	m_projection.setToIdentity();
+	m_projection.perspective(m_camera.getZoom(), static_cast<float>(width() / height()), 0.1f, 100.0f);
+	m_view.setToIdentity();
+	m_view = m_camera.getViewMatrix();
+	m_model.setToIdentity();
+	(m_drawingMode == Mode::SOLID) ? glPolygonMode(GL_FRONT_AND_BACK, GL_FILL) : glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	
+	auto obj = m_scene.getCurrentObjSelection();
+    if (nullptr != obj) {
+        glEnable(GL_MULTISAMPLE);
         if (!obj->isBuffersInited()) {
             obj->intializeBuffers(this);
             m_translationVec = -(obj->getObjectCenter());
@@ -140,11 +156,13 @@ void OpenGLRenderer::paintGL() {
         m_shaderProgram->setUniformValue("shininess", 128.0f);
 
         obj->draw(this);
-    }
-    glDisable(GL_MULTISAMPLE);
+        updateObjDetails(obj);
 
-    calculateFPS();
-    updateSceneStatus();
+        glDisable(GL_MULTISAMPLE);
+    }
+
+	calculateFPS();
+	updateSceneStatus();
 }
 
 void OpenGLRenderer::initializeShaders() {
