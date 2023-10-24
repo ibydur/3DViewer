@@ -5,6 +5,7 @@
 #include <QOpenGLBuffer>
 #include <QOpenGLVertexArrayObject.h>
 #include <QElapsedTimer> 
+#include <QDir>
 
 #include "../../Geometry/include/CgalApi.h"
 
@@ -21,10 +22,10 @@ public:
 	 SceneObject() = default;
 	~SceneObject() = default;
 	SceneObject(const SceneObject&) = delete;
-	SceneObject(const QString& name, const QVector<Vertex>& vertices,
+	SceneObject(const QString& filepath, const QString& name, const QVector<Vertex>& vertices,
 		unsigned int vertices_count, unsigned int faces_count, unsigned int edges_count);
 
-	template <typename T> inline static std::shared_ptr<SceneObject> makeObject(const QString& name, const T& mesh);
+	template <typename T> inline static std::shared_ptr<SceneObject> makeObject(const QFileInfo& fileInfo, const T& mesh);
 
 	void draw(OpenGLRenderer* renderer);
 	void intializeBuffers(OpenGLRenderer* renderer);
@@ -38,6 +39,7 @@ public:
 	inline constexpr float		  getHeight()			const { return this->m_height; };
 	inline constexpr float		  getLength()			const { return this->m_length; }
 	inline QString				  getName()				const { return this->m_name; }
+	inline QString				  getFilePath()			const { return this->m_filepath; }
 	inline bool					  isActive()			const { return this->m_isActive; };
 	inline unsigned int			  getID()				const { return this->m_objID; };
 	inline bool					  isBuffersInited()		const { return this->m_buffersInited; };
@@ -49,6 +51,7 @@ public:
 	QVector<Vertex> vertices;
 
 private:
+	QString m_filepath;
 	QString m_name;
 	bool m_isActive;
 	unsigned int m_objID;
@@ -64,7 +67,7 @@ private:
 };
 
 template<typename T>
-inline static std::shared_ptr<SceneObject> SceneObject::makeObject(const QString& name, const T& mesh)
+inline static std::shared_ptr<SceneObject> SceneObject::makeObject(const QFileInfo& fileInfo, const T& mesh)
 {
 	if (nullptr == mesh) {
 		return {};
@@ -93,7 +96,8 @@ inline static std::shared_ptr<SceneObject> SceneObject::makeObject(const QString
 	qDebug() << "Function took" << elapsedSeconds << "seconds to execute";
 
 	return std::make_shared<SceneObject>(
-		name,
+		fileInfo.absoluteFilePath(),
+		fileInfo.baseName(),
 		vertices,
 		mesh->number_of_vertices(),
 		mesh->number_of_faces(),

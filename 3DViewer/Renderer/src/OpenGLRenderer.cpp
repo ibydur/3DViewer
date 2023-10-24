@@ -1,4 +1,3 @@
-#include <QDir>
 #include <QEvent.h>
 #include <QApplication>
 #include <QtMath>

@@ -4,12 +4,12 @@
 unsigned int SceneObject::m_idCounter = 0;
 
 SceneObject::SceneObject(
-	const QString& name, const QVector<Vertex>& vertices,
+    const QString& filepath, const QString& name, const QVector<Vertex>& vertices,
 	unsigned int vertices_count, unsigned int faces_count, unsigned int edges_count
 ) :
-	m_name(name), m_num_vertices(vertices_count), m_num_faces(faces_count),
-	m_num_edges(edges_count), vertices(vertices), m_objID(++m_idCounter),
-	m_buffersInited(false), m_isActive(true)
+	m_filepath(filepath), m_name(name), m_num_vertices(vertices_count), 
+    m_num_faces(faces_count), m_num_edges(edges_count), vertices(vertices), 
+    m_objID(++m_idCounter),	m_buffersInited(false), m_isActive(true)
 {
 	calculateDimensions();
 }

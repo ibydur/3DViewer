@@ -2,6 +2,7 @@
 
 #include <QMainWindow>
 #include <QLabel>
+#include <QtConcurrent>
 
 #include "../../Renderer/include/OpenGLRenderer.h"
 #include "../../Scene/include/SceneObject.h"
@@ -19,14 +20,15 @@ public:
     ~Viewer();
     void addFileToTreeList(const QString& file, unsigned int objId);
 public slots:
-    void loadObject();
+    void openFile();
 signals:
     void sceneUpdated(const std::shared_ptr<SceneObject>&);
 protected:
     void resizeEvent(QResizeEvent* event) override;
+private slots:
+    void handleObjectConstruction();
 private:
-    bool openFile(const QString& file);
-
+    std::shared_ptr<SceneObject> constructObject(const QString& file);
     void connectSignalsSlots();
     void createStatusBar();
 
@@ -37,5 +39,7 @@ private:
     QLabel* m_mousePosLbl;
     QLabel* m_framerateLbl;
     QLabel* m_statusLbl;
+
+    QFutureWatcher<std::shared_ptr<SceneObject>> watcher;
 };
 

@@ -35,24 +35,23 @@ void Viewer::resizeEvent(QResizeEvent* event)
     m_openGLRenderer->setFixedSize(ui->openGLWidget->size());
 }
 
-bool Viewer::openFile(const QString& file)
+std::shared_ptr<SceneObject> Viewer::constructObject(const QString& file)
 {
-    auto str = file.toStdString();
-    auto mesh = CGAL_API::constructMeshFromObj(file.toStdString());
+    std::unique_ptr<Surface_mesh> mesh = CGAL_API::constructMeshFromObj(file.toStdString());
     if (nullptr == mesh) {
-        qCritical() << "Something went wrong while loading obj. Mesh wasn't constructed.";
-        return false;
+        qCritical() << "Something went wrong while loading obj. Mesh wasn't constructed well.";
     }
-    auto obj = SceneObject::makeObject(QFileInfo(file).baseName(), mesh);
-    addFileToTreeList(file, obj->getID());
-    emit sceneUpdated(obj);
-    return true;
+    std::shared_ptr<SceneObject> obj = SceneObject::makeObject(QFileInfo(file), mesh);
+    if (nullptr == obj) {
+        qCritical() << "Something went wrong while loading obj. Scene object wasn't constructed well.";
+    }
+    return obj;
 }
 
 void Viewer::connectSignalsSlots()
 {
     //menu action
-    connect(ui->actionOpen, &QAction::triggered, this, &Viewer::loadObject);
+    connect(ui->actionOpen, &QAction::triggered, this, &Viewer::openFile);
 
     //details frame
     connect(m_openGLRenderer, &OpenGLRenderer::verticesUpdated, ui->objDataVerticesLbl, &QLabel::setText);
@@ -73,6 +72,9 @@ void Viewer::connectSignalsSlots()
     
     //tree view
     connect(ui->objsListWidget, &QListWidget::currentItemChanged, m_openGLRenderer, &OpenGLRenderer::sceneItemChanged);
+
+    //scene
+    connect(&watcher, &QFutureWatcher<std::shared_ptr<SceneObject>>::finished, this, &Viewer::handleObjectConstruction);
 }
 
 void Viewer::createStatusBar()
@@ -87,14 +89,19 @@ void Viewer::createStatusBar()
     statusBar()->addWidget(m_framerateLbl);
 }
 
-void Viewer::loadObject()
+void Viewer::handleObjectConstruction()
+{
+    const auto& obj = std::move(watcher.result());
+    addFileToTreeList(obj->getFilePath(), obj->getID());
+    emit sceneUpdated(obj);
+}
+
+void Viewer::openFile()
 {
     QFileDialog dialog(this, tr("Open File"));
     dialog.setNameFilter("*.obj");
 
-    while (dialog.exec() == QDialog::Accepted) {
-        if (openFile(dialog.selectedFiles().first())) {
-            break;
-        }
-    }
+    if (dialog.exec() == QDialog::Accepted) {
+        watcher.setFuture(QtConcurrent::run(this, &Viewer::constructObject, dialog.selectedFiles().first()));
+    }    
 }

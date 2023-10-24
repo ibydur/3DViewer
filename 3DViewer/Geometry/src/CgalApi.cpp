@@ -11,10 +11,12 @@ std::unique_ptr<Surface_mesh> CGAL_API::constructMeshFromObj(const std::string& 
         qWarning() << "CGAL API error: Cannot open input file.";
         return nullptr;
     }
+    qDebug() << "Obj reading has been started: " << file_path.c_str();
     if (!CGAL::IO::read_OBJ(input, *mesh)) {
         qWarning() << "CGAL API error: Failed to read OBJ file.";
         return nullptr;
     }
+    qDebug() << "Obj reading has been ended: " << file_path.c_str();
     input.close();
     return mesh;
 }
