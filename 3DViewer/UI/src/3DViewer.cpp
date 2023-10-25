@@ -86,20 +86,21 @@ void Viewer::connectSignalsSlots()
     //status bar
     connect(m_openGLRenderer, &OpenGLRenderer::mouseMoved,         m_mousePosLbl,       &QLabel::setText);
     connect(m_openGLRenderer, &OpenGLRenderer::framerateUpdated,   m_framerateLbl,      &QLabel::setText);
-    connect(m_openGLRenderer, &OpenGLRenderer::sceneStatusUpdated, m_statusLbl,         &QLabel::setText);
 
-    connect(this, &Viewer::sceneUpdated, m_openGLRenderer, &OpenGLRenderer::sceneUpdated);
-    
+    connect(this, &Viewer::sceneUpdated,  m_openGLRenderer, &OpenGLRenderer::sceneUpdated);
+    connect(this, &Viewer::objectRemoved, m_openGLRenderer, &OpenGLRenderer::objectRemoved);
+
     //tree view
     connect(ui->objsListWidget, &QListWidget::currentItemChanged, m_openGLRenderer, &OpenGLRenderer::sceneItemChanged);
 
     //scene
-    connect(&watcher, &QFutureWatcher<std::shared_ptr<SceneObject>>::finished, this, &Viewer::handleObjectConstruction);
+    connect(&watcher, &QFutureWatcher<std::shared_ptr<SceneObject>>::finished,  this, &Viewer::handleObjectConstruction);
+    connect(&watcher, &QFutureWatcher<std::shared_ptr<SceneObject>>::started,  [this]() { m_statusLbl->setText("\"" + watcher.property("filename").toString() + "\" is loading"); });
+    connect(&watcher, &QFutureWatcher<std::shared_ptr<SceneObject>>::finished, [this]() { m_statusLbl->setText(""); });
 }
 
 void Viewer::createStatusBar()
 {
-    statusBar()->addWidget(new QLabel("Status:", this));
     statusBar()->addWidget(m_statusLbl);
 
     statusBar()->addWidget(new QLabel("Mouse position:", this));
@@ -121,7 +122,8 @@ void Viewer::openFile()
     QFileDialog dialog(this, tr("Open File"));
     dialog.setNameFilter("*.obj");
 
-    if (dialog.exec() == QDialog::Accepted) {
+    if (dialog.exec() == QDialog::Accepted) {           
+        watcher.setProperty("filename", dialog.selectedFiles().first());
         watcher.setFuture(QtConcurrent::run(this, &Viewer::constructObject, dialog.selectedFiles().first()));
     }    
 }
