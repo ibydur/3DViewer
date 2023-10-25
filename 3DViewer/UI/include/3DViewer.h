@@ -19,18 +19,26 @@ public:
     explicit Viewer(QWidget *parent = nullptr);
     ~Viewer();
     void addFileToTreeList(const QString& file, unsigned int objId);
+
 public slots:
     void openFile();
+
 signals:
     void sceneUpdated(const std::shared_ptr<SceneObject>&);
+    void objectRemoved();
+
 protected:
     void resizeEvent(QResizeEvent* event) override;
+    void keyPressEvent(QKeyEvent* event) override;
+
 private slots:
     void handleObjectConstruction();
+
 private:
     std::shared_ptr<SceneObject> constructObject(const QString& file);
     void connectSignalsSlots();
     void createStatusBar();
+    void handleObjectRemovement();
 
     OpenGLRenderer* m_openGLRenderer;
     Ui::Viewer *ui;

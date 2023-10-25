@@ -55,8 +55,6 @@ public:
 	inline void					  setTranslationVec(const QVector3D& vec)    { this->m_translationVec = vec; };
 	inline void					  setRotationQuart(const QQuaternion& quart) { this->m_rotationQuaternion = quart; };
 
-	
-
 	QOpenGLBuffer vbo;
 	QOpenGLVertexArrayObject vao;
 	QVector<Vertex> vertices;

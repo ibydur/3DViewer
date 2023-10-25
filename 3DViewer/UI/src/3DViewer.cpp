@@ -35,6 +35,26 @@ void Viewer::resizeEvent(QResizeEvent* event)
     m_openGLRenderer->setFixedSize(ui->openGLWidget->size());
 }
 
+void Viewer::keyPressEvent(QKeyEvent* event)
+{
+    switch (event->key()) {
+    case Qt::Key_Delete:
+        emit objectRemoved();
+        handleObjectRemovement();
+        m_openGLRenderer->update();
+        break;
+    case Qt::Key_Q:
+        QApplication::quit();
+        break;
+    }
+}
+
+void Viewer::handleObjectRemovement()
+{
+    QListWidgetItem* selectedItem = ui->objsListWidget->currentItem();
+    delete selectedItem;
+}
+
 std::shared_ptr<SceneObject> Viewer::constructObject(const QString& file)
 {
     std::unique_ptr<Surface_mesh> mesh = CGAL_API::constructMeshFromObj(file.toStdString());
