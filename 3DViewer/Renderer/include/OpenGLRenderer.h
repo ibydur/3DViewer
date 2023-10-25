@@ -54,6 +54,8 @@ protected:
 	void mouseReleaseEvent(QMouseEvent* event) override;
 
 private:
+	void transform(const std::shared_ptr<SceneObject>& obj);
+	void setUniforms();
 	void calculateFPS();
 	void updateSceneStatus();
 	void updateObjDetails(const std::shared_ptr<SceneObject>& obj);

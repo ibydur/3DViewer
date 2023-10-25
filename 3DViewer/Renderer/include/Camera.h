@@ -24,7 +24,8 @@ public:
     void processMouseScroll(float yOffset);
     void processKeyboard(CameraMovement direction, float deltaTime);
     void processMouseMovement(float xoffset, float yoffset);
-    void reset();
+    void FitInWindow(float bbLength);
+    void reset(float bbLength = 1.0f);
 private:
     // Camera attributes
     QVector3D m_position;

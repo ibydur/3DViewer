@@ -18,8 +18,9 @@ QMatrix4x4 Camera::getViewMatrix()
     return this->m_view;
 }
 
-void Camera::processKeyboard(CameraMovement direction, float deltaTime) {
-    float velocity = m_movementSpeed * 0.1;
+void Camera::processKeyboard(CameraMovement direction, float deltaTime) 
+{
+    float velocity = m_movementSpeed * 0.2;
     if (direction == CameraMovement::FORWARD)
         m_position += m_front * velocity;
     if (direction == CameraMovement::BACKWARD)
@@ -30,7 +31,8 @@ void Camera::processKeyboard(CameraMovement direction, float deltaTime) {
         m_position += m_right * velocity;
 }
 
-void Camera::processMouseMovement(float xOffset, float yOffset) {
+void Camera::processMouseMovement(float xOffset, float yOffset) 
+{
     xOffset *= m_mouseSensitivity;
     yOffset *= m_mouseSensitivity;
 
@@ -43,16 +45,17 @@ void Camera::processMouseMovement(float xOffset, float yOffset) {
     m_updateCameraVectors();
 }
 
-void Camera::reset()
+void Camera::reset(float bbLength)
 {
-    this->m_position = QVector3D(0.0f, 0.0f, 20.0f);
     this->m_zoom = 45.0f;
     this->m_yaw = -90.0f;
     this->m_pitch = 0.0f;
     m_updateCameraVectors();
+    FitInWindow(bbLength);
 }
 
-void Camera::processMouseScroll(float yOffset) {
+void Camera::processMouseScroll(float yOffset) 
+{
     if (m_zoom >= 1.0f && m_zoom <= 120.0f)
         m_zoom -= yOffset * 0.05;
     if (m_zoom <= 1.0f)
@@ -61,13 +64,21 @@ void Camera::processMouseScroll(float yOffset) {
         m_zoom = 120.0f;
 }
 
-void Camera::m_updateCameraVectors() {
+void Camera::m_updateCameraVectors() 
+{
     QVector3D newm_front = { 0, 0, 0 };
     newm_front.setX(qCos(qDegreesToRadians(m_yaw)) * qCos(qDegreesToRadians(m_pitch)));
     newm_front.setY(qSin(qDegreesToRadians(m_pitch)));
     newm_front.setZ(qSin(qDegreesToRadians(m_yaw)) * qCos(qDegreesToRadians(m_pitch)));
     m_front = newm_front.normalized();
-
     m_right = QVector3D::crossProduct(m_front, m_worldUp).normalized();
     m_up = QVector3D::crossProduct(m_right, m_front).normalized();
+}
+
+void Camera::FitInWindow(float bbLength) 
+{
+    // Dividing by 2.0f is necessary because the qTan function typically expects the angle in radians. 
+    // This part computes half of the field of view angle in radians.
+    float distance = bbLength / (2.0f * qTan(qDegreesToRadians(m_zoom / 2.0f)));
+    m_position = m_front * (-distance);
 }

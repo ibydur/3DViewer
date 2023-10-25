@@ -11,7 +11,7 @@ SceneObject::SceneObject(
     m_num_faces(faces_count), m_num_edges(edges_count), vertices(vertices), 
     m_objID(++m_idCounter),	m_buffersInited(false), m_isActive(true)
 {
-	calculateDimensions();
+    calculateBoundingBox();
 }
 
 void SceneObject::draw(OpenGLRenderer* renderer)
@@ -30,32 +30,25 @@ void SceneObject::release()
     vao.destroy();
 }
 
-QVector3D SceneObject::getObjectCenter()
+void SceneObject::calculateBoundingBox()
 {
-	QVector3D objectCenter;
-	for (const auto& vertex : vertices) {
-		objectCenter += vertex.position;
-	}
-	objectCenter /= vertices.size();
-	return objectCenter;
-}
+    QVector3D minBounds = QVector3D(std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
+    QVector3D maxBounds = QVector3D(-std::numeric_limits<float>::max(), -std::numeric_limits<float>::max(), -std::numeric_limits<float>::max());
+    for (const auto& vertex : vertices) {
+        minBounds.setX(std::min(minBounds.x(), vertex.position.x()));
+        minBounds.setY(std::min(minBounds.y(), vertex.position.y()));
+        minBounds.setZ(std::min(minBounds.z(), vertex.position.z()));
 
-void SceneObject::calculateDimensions()
-{
-    QVector3D minCoords(std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
-    QVector3D maxCoords(-std::numeric_limits<float>::max(), -std::numeric_limits<float>::max(), -std::numeric_limits<float>::max());
-    for (const Vertex& vertex : vertices) {
-        minCoords.setX(std::min(minCoords.x(), vertex.position.x()));
-        minCoords.setY(std::min(minCoords.y(), vertex.position.y()));
-        minCoords.setZ(std::min(minCoords.z(), vertex.position.z()));
-
-        maxCoords.setX(std::max(maxCoords.x(), vertex.position.x()));
-        maxCoords.setY(std::max(maxCoords.y(), vertex.position.y()));
-        maxCoords.setZ(std::max(maxCoords.z(), vertex.position.z()));
+        maxBounds.setX(std::max(maxBounds.x(), vertex.position.x()));
+        maxBounds.setY(std::max(maxBounds.y(), vertex.position.y()));
+        maxBounds.setZ(std::max(maxBounds.z(), vertex.position.z()));
     }
-    m_length = (maxCoords.x() - minCoords.x()) * 100.0f;
-    m_width  = (maxCoords.y() - minCoords.y()) * 100.0f;
-    m_height = (maxCoords.z() - minCoords.z()) * 100.0f;
+    //converting to cm
+    m_length            = (maxBounds.x() - minBounds.x()) * 100.0f;
+    m_width             = (maxBounds.y() - minBounds.y()) * 100.0f;
+    m_height            = (maxBounds.z() - minBounds.z()) * 100.0f;
+    m_center            = (minBounds + maxBounds) * 0.5;
+    m_boundingBoxLength = (maxBounds - minBounds).length();
 }
 
 void SceneObject::reset()

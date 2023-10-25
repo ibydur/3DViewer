@@ -158,7 +158,7 @@
            <item>
             <widget class="QLabel" name="objWidthLbl">
              <property name="text">
-              <string>Object width:</string>
+              <string>Width:</string>
              </property>
             </widget>
            </item>
@@ -176,7 +176,7 @@
            <item>
             <widget class="QLabel" name="objHeightLbl">
              <property name="text">
-              <string>Object height:</string>
+              <string>Height:</string>
              </property>
             </widget>
            </item>
@@ -194,7 +194,7 @@
            <item>
             <widget class="QLabel" name="objLengthLbl">
              <property name="text">
-              <string>Object length:</string>
+              <string>Length:</string>
              </property>
             </widget>
            </item>

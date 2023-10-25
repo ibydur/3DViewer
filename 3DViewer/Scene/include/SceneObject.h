@@ -31,20 +31,23 @@ public:
 	void draw(OpenGLRenderer* renderer);
 	void intializeBuffers(OpenGLRenderer* renderer);
 	void release();
-	void calculateDimensions();
+	void calculateBoundingBox();
+	
 	void reset();
 
 	inline constexpr unsigned int getNumberOfVertices() const { return this->m_num_vertices; };
 	inline constexpr unsigned int getNumberOfFaces()    const { return this->m_num_faces; };
 	inline constexpr unsigned int getNumberOfEdges()    const { return this->m_num_edges; }
+	inline constexpr unsigned int getID()				const { return this->m_objID; };
 	inline constexpr float		  getWidth()			const { return this->m_width; };
 	inline constexpr float		  getHeight()			const { return this->m_height; };
 	inline constexpr float		  getLength()			const { return this->m_length; }
+	inline constexpr float		  getBoundingBoxLength()const { return this->m_boundingBoxLength; }
 	inline QString				  getName()				const { return this->m_name; }
 	inline QString				  getFilePath()			const { return this->m_filepath; }
 	inline bool					  isActive()			const { return this->m_isActive; };
-	inline unsigned int			  getID()				const { return this->m_objID; };
 	inline bool					  isBuffersInited()		const { return this->m_buffersInited; };
+	inline QVector3D			  getObjectCenter()		const { return this->m_center; }
 	inline QVector3D			  getTranslationVec()	const { return this->m_translationVec; };
 	inline QQuaternion			  getRotationQuart()	const { return this->m_rotationQuaternion; };
 
@@ -52,28 +55,30 @@ public:
 	inline void					  setTranslationVec(const QVector3D& vec)    { this->m_translationVec = vec; };
 	inline void					  setRotationQuart(const QQuaternion& quart) { this->m_rotationQuaternion = quart; };
 
-	QVector3D getObjectCenter();
+	
 
 	QOpenGLBuffer vbo;
 	QOpenGLVertexArrayObject vao;
 	QVector<Vertex> vertices;
 
 private:
-	QString m_filepath;
-	QString m_name;
-	bool m_isActive;
-	unsigned int m_objID;
 	static unsigned int m_idCounter;
 	bool m_buffersInited;
 	// obj data
+	QString m_filepath;
+	QString m_name;
 	unsigned int m_num_vertices;
 	unsigned int m_num_faces;
 	unsigned int m_num_edges;
+	unsigned int m_objID;
 	float m_width;
 	float m_height;
 	float m_length;
+	float m_boundingBoxLength;
+	bool m_isActive;
 	QQuaternion m_rotationQuaternion;
 	QVector3D m_translationVec;
+	QVector3D m_center;
 };
 
 template<typename T>
