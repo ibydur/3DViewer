@@ -57,9 +57,12 @@
           <number>5</number>
          </property>
          <item>
-          <widget class="QCheckBox" name="objActiveCheckBox">
+          <widget class="QCheckBox" name="objVisibleCB">
            <property name="text">
-            <string>Active</string>
+            <string>Visible</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
            </property>
           </widget>
          </item>

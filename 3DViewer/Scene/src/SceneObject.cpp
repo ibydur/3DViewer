@@ -9,7 +9,7 @@ SceneObject::SceneObject(
 ) :
 	m_filepath(filepath), m_name(name), m_num_vertices(vertices_count), 
     m_num_faces(faces_count), m_num_edges(edges_count), vertices(vertices), 
-    m_objID(++m_idCounter),	m_buffersInited(false), m_isActive(true)
+    m_objID(++m_idCounter),	m_buffersInited(false), m_isVisible(Qt::CheckState::Checked)
 {
     calculateBoundingBox();
 }

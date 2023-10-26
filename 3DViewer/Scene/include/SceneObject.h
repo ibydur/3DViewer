@@ -45,7 +45,7 @@ public:
 	inline constexpr float		  getBoundingBoxLength()const { return this->m_boundingBoxLength; }
 	inline QString				  getName()				const { return this->m_name; }
 	inline QString				  getFilePath()			const { return this->m_filepath; }
-	inline bool					  isActive()			const { return this->m_isActive; };
+	inline int					  isVisible()			const { return this->m_isVisible; };
 	inline bool					  isBuffersInited()		const { return this->m_buffersInited; };
 	inline QVector3D			  getObjectCenter()		const { return this->m_center; }
 	inline QVector3D			  getTranslationVec()	const { return this->m_translationVec; };
@@ -54,6 +54,7 @@ public:
 	inline void					  setBuffersInited(bool inited)			     { this->m_buffersInited = inited; };
 	inline void					  setTranslationVec(const QVector3D& vec)    { this->m_translationVec = vec; };
 	inline void					  setRotationQuart(const QQuaternion& quart) { this->m_rotationQuaternion = quart; };
+	inline void					  setVisible(int state) { this->m_isVisible = state; };
 
 	QOpenGLBuffer vbo;
 	QOpenGLVertexArrayObject vao;
@@ -73,7 +74,7 @@ private:
 	float m_height;
 	float m_length;
 	float m_boundingBoxLength;
-	bool m_isActive;
+	int m_isVisible;
 	QQuaternion m_rotationQuaternion;
 	QVector3D m_translationVec;
 	QVector3D m_center;

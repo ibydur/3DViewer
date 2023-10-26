@@ -6,13 +6,14 @@
 Viewer::Viewer(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::Viewer),
+    m_scene(),
     //status bar labels
     m_mousePosLbl (new QLabel(this)),
     m_framerateLbl(new QLabel(this)),
     m_statusLbl   (new QLabel(this))
 {
     ui->setupUi(this);
-    m_openGLRenderer = new OpenGLRenderer(ui->openGLWidget);
+    m_openGLRenderer = new OpenGLRenderer(ui->openGLWidget, m_scene);
     connectSignalsSlots();
     createStatusBar(); 
 }
@@ -43,7 +44,7 @@ void Viewer::keyPressEvent(QKeyEvent* event)
         handleObjectRemovement();
         m_openGLRenderer->update();
         break;
-    case Qt::Key_Q:
+    case Qt::Key_Escape:
         QApplication::quit();
         break;
     }
@@ -72,31 +73,31 @@ void Viewer::connectSignalsSlots()
 {
     //menu action
     connect(ui->actionOpen, &QAction::triggered, this, &Viewer::openFile);
+    connect(ui->actionExit, &QAction::triggered, this, &QApplication::quit);
 
     //details frame
-    connect(m_openGLRenderer, &OpenGLRenderer::verticesUpdated, ui->objDataVerticesLbl, &QLabel::setText);
-    connect(m_openGLRenderer, &OpenGLRenderer::facesUpdated,    ui->objDataFacesLbl,    &QLabel::setText);
-    connect(m_openGLRenderer, &OpenGLRenderer::edgesUpdated,    ui->objDataEdgesLbl,    &QLabel::setText);
-    connect(m_openGLRenderer, &OpenGLRenderer::IdUpdated,       ui->objDataIdLbl,       &QLabel::setText);
-    connect(m_openGLRenderer, &OpenGLRenderer::widthUpdated,    ui->objDataWidthLbl,    &QLabel::setText);
-    connect(m_openGLRenderer, &OpenGLRenderer::heightUpdated,   ui->objDataHeightLbl,   &QLabel::setText);
-    connect(m_openGLRenderer, &OpenGLRenderer::lengthUpdated,   ui->objDataLengthLbl,   &QLabel::setText);
-    connect(m_openGLRenderer, &OpenGLRenderer::nameUpdated,     ui->objDataNameLbl,     &QLabel::setText);
+    connect(&m_scene, &Scene::verticesUpdated, ui->objDataVerticesLbl, &QLabel::setText);
+    connect(&m_scene, &Scene::facesUpdated,    ui->objDataFacesLbl,    &QLabel::setText);
+    connect(&m_scene, &Scene::edgesUpdated,    ui->objDataEdgesLbl,    &QLabel::setText);
+    connect(&m_scene, &Scene::IdUpdated,       ui->objDataIdLbl,       &QLabel::setText);
+    connect(&m_scene, &Scene::widthUpdated,    ui->objDataWidthLbl,    &QLabel::setText);
+    connect(&m_scene, &Scene::heightUpdated,   ui->objDataHeightLbl,   &QLabel::setText);
+    connect(&m_scene, &Scene::lengthUpdated,   ui->objDataLengthLbl,   &QLabel::setText);
+    connect(&m_scene, &Scene::nameUpdated,     ui->objDataNameLbl,     &QLabel::setText);
 
     //status bar
     connect(m_openGLRenderer, &OpenGLRenderer::mouseMoved,         m_mousePosLbl,       &QLabel::setText);
     connect(m_openGLRenderer, &OpenGLRenderer::framerateUpdated,   m_framerateLbl,      &QLabel::setText);
 
-    connect(this, &Viewer::sceneUpdated,  m_openGLRenderer, &OpenGLRenderer::sceneUpdated);
-    connect(this, &Viewer::objectRemoved, m_openGLRenderer, &OpenGLRenderer::objectRemoved);
-
-    //tree view
-    connect(ui->objsListWidget, &QListWidget::currentItemChanged, m_openGLRenderer, &OpenGLRenderer::sceneItemChanged);
-
-    //scene
     connect(&watcher, &QFutureWatcher<std::shared_ptr<SceneObject>>::finished,  this, &Viewer::handleObjectConstruction);
     connect(&watcher, &QFutureWatcher<std::shared_ptr<SceneObject>>::started,  [this]() { m_statusLbl->setText("\"" + watcher.property("filename").toString() + "\" is loading"); });
     connect(&watcher, &QFutureWatcher<std::shared_ptr<SceneObject>>::finished, [this]() { m_statusLbl->setText(""); });
+
+    //scene
+    connect(ui->objVisibleCB, &QCheckBox::stateChanged, &m_scene, &Scene::setCurrentObjVisibility);
+    connect(this, &Viewer::sceneUpdated, &m_scene, &Scene::addObjectOnScene);
+    connect(this, &Viewer::objectRemoved, &m_scene, &Scene::removeCurrentObjSelection);
+    connect(ui->objsListWidget, &QListWidget::currentItemChanged, &m_scene, &Scene::handleSceneItemChanged);
 }
 
 void Viewer::createStatusBar()

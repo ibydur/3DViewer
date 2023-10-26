@@ -42,7 +42,7 @@ private:
 
     OpenGLRenderer* m_openGLRenderer;
     Ui::Viewer *ui;
-
+    Scene m_scene;
     //status bar
     QLabel* m_mousePosLbl;
     QLabel* m_framerateLbl;

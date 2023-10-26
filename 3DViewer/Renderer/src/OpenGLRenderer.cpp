@@ -4,11 +4,11 @@
 
 #include "../include/OpenGLRenderer.h"
 
-OpenGLRenderer::OpenGLRenderer(QWidget* parent) :
+OpenGLRenderer::OpenGLRenderer(QWidget* parent, const Scene& scene) :
 	QOpenGLWidget(parent),
 	m_drawingMode(Mode::SOLID),
 	m_camera(),
-	m_scene()
+	m_scene(scene)
 {
 	setFocusPolicy(parent->focusPolicy());
 	setMouseTracking(true);
@@ -16,22 +16,10 @@ OpenGLRenderer::OpenGLRenderer(QWidget* parent) :
 	QSurfaceFormat format;
 	format.setSamples(4);
 	setFormat(format);
-
-	connect(this, &OpenGLRenderer::sceneUpdated,     &m_scene, &Scene::addObjectOnScene);
-	connect(this, &OpenGLRenderer::sceneItemChanged, &m_scene, &Scene::handleSceneItemChanged);
-	connect(this, &OpenGLRenderer::objectRemoved,    &m_scene, &Scene::removeCurrentObjSelection);
 }
 
 OpenGLRenderer::~OpenGLRenderer()
 {
-	for (const auto& obj : m_scene.getObjectsLst()) {
-		obj->release();	
-	}
-}
-
-void OpenGLRenderer::addObject(const std::shared_ptr<SceneObject>& obj)
-{
-	m_scene.addObjectOnScene(obj);
 }
 
 void OpenGLRenderer::drawObject(SceneObject& obj)
@@ -108,30 +96,6 @@ void OpenGLRenderer::calculateFPS() {
 	emit framerateUpdated(QString::number(fps, 'f', 2));
 }
 
-void OpenGLRenderer::updateObjDetails(const std::shared_ptr<SceneObject>& obj)
-{
-	if (nullptr != obj) {
-		emit nameUpdated(obj->getName());
-		emit verticesUpdated(QString::number(obj->getNumberOfVertices()));
-		emit facesUpdated(QString::number(obj->getNumberOfFaces()));
-		emit edgesUpdated(QString::number(obj->getNumberOfEdges()));
-		emit IdUpdated(QString::number(obj->getID()));
-		emit widthUpdated(QString::number(obj->getWidth(), 'f', 2) + " cm");
-		emit heightUpdated(QString::number(obj->getHeight(), 'f', 2) + " cm");
-		emit lengthUpdated(QString::number(obj->getLength(), 'f', 2) + " cm");
-	}
-	else {
-		emit nameUpdated("Unknown");
-		emit verticesUpdated("0");
-		emit facesUpdated("0");
-		emit edgesUpdated("0");
-		emit IdUpdated("N/A");
-		emit widthUpdated("0.0");
-		emit heightUpdated("0.0");
-		emit lengthUpdated("0.0");
-	}
-}
-
 void OpenGLRenderer::paintGL()
 {
 	glEnable(GL_DEPTH_TEST);
@@ -139,7 +103,7 @@ void OpenGLRenderer::paintGL()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	const auto& current_obj = std::move(m_scene.getCurrentObjSelection());
-	if (nullptr != current_obj) {
+	if (nullptr != current_obj && Qt::CheckState::Checked == current_obj->isVisible()) {
 		m_shaderProgram->bind();
 		(m_drawingMode == Mode::SOLID) ? glPolygonMode(GL_FRONT_AND_BACK, GL_FILL) : glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		glEnable(GL_MULTISAMPLE);
@@ -153,7 +117,7 @@ void OpenGLRenderer::paintGL()
 		current_obj->draw(this);
 		glDisable(GL_MULTISAMPLE);
 	}
-	updateObjDetails(current_obj);
+	m_scene.updateObjDetails(current_obj);
 	calculateFPS();
 }
 
@@ -267,13 +231,13 @@ void OpenGLRenderer::processTranslation(QVector3D& delta)
 	delta.setY(delta.y() * -1.0f);
 	const auto& current_obj = std::move(m_scene.getCurrentObjSelection());
 	if (nullptr != current_obj) {
-		current_obj->setTranslationVec(current_obj->getTranslationVec() + delta * TRANSLATION_SPEED);
+		current_obj->setTranslationVec(current_obj->getTranslationVec() + delta * m_scene.TRANSLATION_SPEED);
 	}
 }
 
 void OpenGLRenderer::processRotation(QVector3D& delta)
 {
-	auto angle = qDegreesToRadians(delta.length()) * ANGLE_ROTATION_SCALE;
+	auto angle = qDegreesToRadians(delta.length()) * m_scene.ANGLE_ROTATION_SCALE;
 	auto axis = QVector3D(delta.y(), delta.x(), 0).normalized();
 	auto rotation = QQuaternion::fromAxisAndAngle(axis, angle);
 	const auto& current_obj = std::move(m_scene.getCurrentObjSelection());

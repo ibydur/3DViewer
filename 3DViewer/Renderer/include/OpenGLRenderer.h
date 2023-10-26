@@ -13,35 +13,20 @@
 
 class OpenGLRenderer : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
 	Q_OBJECT
-	static constexpr auto TRANSLATION_SPEED = 0.02f;
-	static constexpr auto ANGLE_ROTATION_SCALE = 7.0f;
 public:
 	enum class Mode {
 		WIREFRAME,
 		SOLID
 	};
-	OpenGLRenderer(QWidget* parent = nullptr);
+	OpenGLRenderer(QWidget* parent = nullptr, const Scene& scene = Scene());
 	~OpenGLRenderer();
 
-	void addObject(const std::shared_ptr<SceneObject>& obj);
 	void drawObject(SceneObject& obj);
 	void initObjectBuffers(SceneObject& obj);
 
 signals:
 	void mouseMoved(QString);
 	void framerateUpdated(QString);
-	void sceneStatusUpdated(QString);
-	void verticesUpdated(QString);
-	void edgesUpdated(QString);
-	void facesUpdated(QString);
-	void IdUpdated(QString);
-	void widthUpdated(QString);
-	void lengthUpdated(QString);
-	void heightUpdated(QString);
-	void nameUpdated(QString);
-	void sceneUpdated(const std::shared_ptr<SceneObject>&);
-	void sceneItemChanged(QListWidgetItem*, QListWidgetItem*);
-	void objectRemoved();
 
 protected:
 	void initializeGL() override;
@@ -58,13 +43,12 @@ private:
 	void transform(const std::shared_ptr<SceneObject>& obj);
 	void setUniforms();
 	void calculateFPS();
-	void updateObjDetails(const std::shared_ptr<SceneObject>& obj);
 	void reset();
 	void processTranslation(QVector3D& delta);
 	void processRotation(QVector3D& delta);
 
 	Camera m_camera;
-	Scene  m_scene;
+	const Scene&  m_scene;
 
 	QPointF m_lastMousePos;
 
