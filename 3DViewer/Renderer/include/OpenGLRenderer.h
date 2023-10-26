@@ -27,6 +27,7 @@ public:
 signals:
 	void mouseMoved(QString);
 	void framerateUpdated(QString);
+	void drawingModeChanged(QString);
 
 protected:
 	void initializeGL() override;

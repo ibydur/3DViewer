@@ -9,9 +9,10 @@ Viewer::Viewer(QWidget *parent) :
     ui(new Ui::Viewer),
     m_scene(),
     //status bar labels
-    m_mousePosLbl (new QLabel(this)),
-    m_framerateLbl(new QLabel(this)),
-    m_statusLbl   (new QLabel(this))
+    m_mousePosLbl   (new QLabel("x = 0, y = 0", this)),
+    m_framerateLbl  (new QLabel("0.00", this)),
+    m_drawingModeLbl(new QLabel("solid", this)),
+    m_statusLbl     (new QLabel(this))
 {
     ui->setupUi(this);
     m_openGLRenderer = new OpenGLRenderer(ui->openGLWidget, m_scene);
@@ -92,6 +93,7 @@ void Viewer::connectSignalsSlots()
     //status bar
     connect(m_openGLRenderer, &OpenGLRenderer::mouseMoved,         m_mousePosLbl,       &QLabel::setText);
     connect(m_openGLRenderer, &OpenGLRenderer::framerateUpdated,   m_framerateLbl,      &QLabel::setText);
+    connect(m_openGLRenderer, &OpenGLRenderer::drawingModeChanged, m_drawingModeLbl,    &QLabel::setText);
 
     connect(&watcher, &QFutureWatcher<std::shared_ptr<SceneObject>>::finished,  this, &Viewer::handleObjectConstruction);
     connect(&watcher, &QFutureWatcher<std::shared_ptr<SceneObject>>::started,  [this]() { m_statusLbl->setText("\"" + watcher.property("filename").toString() + "\" is loading"); });
@@ -113,6 +115,9 @@ void Viewer::createStatusBar()
 
     statusBar()->addWidget(new QLabel("Framerate:", this));
     statusBar()->addWidget(m_framerateLbl);
+
+    statusBar()->addWidget(new QLabel("Drawing mode:", this));
+    statusBar()->addWidget(m_drawingModeLbl);
 }
 
 void Viewer::handleObjectConstruction()

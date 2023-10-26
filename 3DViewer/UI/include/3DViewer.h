@@ -48,6 +48,7 @@ private:
     QLabel* m_mousePosLbl;
     QLabel* m_framerateLbl;
     QLabel* m_statusLbl;
+    QLabel* m_drawingModeLbl;
 
     QFutureWatcher<std::shared_ptr<SceneObject>> watcher;
 };

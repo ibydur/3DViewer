@@ -161,6 +161,7 @@ void OpenGLRenderer::keyPressEvent(QKeyEvent* event) {
 		break;
 	case Qt::Key_C:
 		m_drawingMode = (m_drawingMode == Mode::SOLID) ? Mode::WIREFRAME : Mode::SOLID;
+		emit drawingModeChanged(m_drawingMode == Mode::SOLID ? "solid" : "wireframe");
 		break;
 	}
 	update();
