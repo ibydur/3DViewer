@@ -33,7 +33,8 @@ protected:
 
 private slots:
     void handleObjectConstruction();
-
+    void authorInfo();
+    void hotkeysInfo();
 private:
     std::shared_ptr<SceneObject> constructObject(const QString& file);
     void connectSignalsSlots();

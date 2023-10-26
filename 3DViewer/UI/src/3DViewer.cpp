@@ -2,6 +2,7 @@
 #include "../../UI/include/ui_3DViewer.h"
 
 #include <QFileDialog>
+#include <QMessageBox>
 
 Viewer::Viewer(QWidget *parent) :
     QMainWindow(parent),
@@ -71,9 +72,12 @@ std::shared_ptr<SceneObject> Viewer::constructObject(const QString& file)
 
 void Viewer::connectSignalsSlots()
 {
-    //menu action
-    connect(ui->actionOpen, &QAction::triggered, this, &Viewer::openFile);
-    connect(ui->actionExit, &QAction::triggered, this, &QApplication::quit);
+    //file menu
+    connect(ui->actionOpen,    &QAction::triggered, this, &Viewer::openFile);
+    connect(ui->actionExit,    &QAction::triggered, this, &QApplication::quit);
+    //help menu
+    connect(ui->actionAuthor,  &QAction::triggered, this, &Viewer::authorInfo);
+    connect(ui->actionHotkeys, &QAction::triggered, this, &Viewer::hotkeysInfo);
 
     //details frame
     connect(&m_scene, &Scene::verticesUpdated, ui->objDataVerticesLbl, &QLabel::setText);
@@ -127,4 +131,50 @@ void Viewer::openFile()
         watcher.setProperty("filename", dialog.selectedFiles().first());
         watcher.setFuture(QtConcurrent::run(this, &Viewer::constructObject, dialog.selectedFiles().first()));
     }    
+}
+
+
+void Viewer::hotkeysInfo()
+{
+    QString text =
+        "Camera:\n"
+        "    W, S, A, D             \tmove in free camera mode\n"
+        "    RButton                \tpan in free camera mode\n"
+        "    Wheel                  \tzoom\n"
+        "\nScene:\n"
+        "    LButton                \tobject rotation\n"
+        "    LButton + RButton      \tobject translation\n"
+        "    C                      \t\tswitch drawing mode\n"
+        "    R                      \t\treset object and camera position\n"
+        "\nApplication:\n"
+        "    ESC                    \t\tclose app\n"
+        "    DELETE                 \tremove current selected object";
+
+    QMessageBox* msgBox = new QMessageBox(this);
+    msgBox->setIcon(QMessageBox::Information);
+    msgBox->setAttribute(Qt::WA_DeleteOnClose);
+    msgBox->setStandardButtons(QMessageBox::Ok);
+    msgBox->setWindowTitle(tr("Hotkeys Info"));
+    msgBox->setText(text);
+    msgBox->setModal(false);
+    msgBox->show();
+}
+
+void Viewer::authorInfo()
+{
+    QString text =
+        "Name:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ilya Budarov<br>"
+        "Mail:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href=\"mailto:budarov12345@gmail.com\">budarov12345@gmail.com</a><br>"
+        "Github:&nbsp;&nbsp;&nbsp;&nbsp;<a href=\"https://github.com/ibydur\">https://github.com/ibydur</a><br>"
+        "LinkedIn:&nbsp;<a href=\"https://www.linkedin.com/in/ilya-budarov-073ab720a/\">https://www.linkedin.com/in/ilya-budarov-073ab720a/</a><br>";
+
+    QMessageBox* msgBox = new QMessageBox(this);
+    msgBox->setIcon(QMessageBox::Information);
+    msgBox->setAttribute(Qt::WA_DeleteOnClose);
+    msgBox->setStandardButtons(QMessageBox::Ok);
+    msgBox->setWindowTitle(tr("Author Info"));
+    msgBox->setTextFormat(Qt::RichText); // Set text format to RichText
+    msgBox->setText(text);
+    msgBox->setModal(false);
+    msgBox->show();
 }
