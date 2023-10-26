@@ -133,7 +133,6 @@ void Viewer::openFile()
     }    
 }
 
-
 void Viewer::hotkeysInfo()
 {
     QString text =
@@ -173,7 +172,6 @@ void Viewer::authorInfo()
     msgBox->setAttribute(Qt::WA_DeleteOnClose);
     msgBox->setStandardButtons(QMessageBox::Ok);
     msgBox->setWindowTitle(tr("Author Info"));
-    msgBox->setTextFormat(Qt::RichText); // Set text format to RichText
     msgBox->setText(text);
     msgBox->setModal(false);
     msgBox->show();
