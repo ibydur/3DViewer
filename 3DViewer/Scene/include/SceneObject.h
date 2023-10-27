@@ -20,7 +20,7 @@ class OpenGLRenderer;
 
 class SceneObject {
 public:
-	 SceneObject() = default;
+	SceneObject() = default;
 	~SceneObject() = default;
 	SceneObject(const SceneObject&) = delete;
 	SceneObject(const QString& filepath, const QString& name, const QVector<Vertex>& vertices,
@@ -32,7 +32,7 @@ public:
 	void intializeBuffers(OpenGLRenderer* renderer);
 	void release();
 	void calculateBoundingBox();
-	
+
 	void reset();
 
 	inline constexpr unsigned int getNumberOfVertices() const { return this->m_num_vertices; };
@@ -51,8 +51,8 @@ public:
 	inline QVector3D			  getTranslationVec()	const { return this->m_translationVec; };
 	inline QQuaternion			  getRotationQuart()	const { return this->m_rotationQuaternion; };
 
-	inline void					  setBuffersInited(bool inited)			     { this->m_buffersInited = inited; };
-	inline void					  setTranslationVec(const QVector3D& vec)    { this->m_translationVec = vec; };
+	inline void					  setBuffersInited(bool inited) { this->m_buffersInited = inited; };
+	inline void					  setTranslationVec(const QVector3D& vec) { this->m_translationVec = vec; };
 	inline void					  setRotationQuart(const QQuaternion& quart) { this->m_rotationQuaternion = quart; };
 	inline void					  setVisible(int state) { this->m_isVisible = state; };
 
@@ -84,37 +84,43 @@ template<typename T>
 inline static std::shared_ptr<SceneObject> SceneObject::makeObject(const QFileInfo& fileInfo, const T& mesh)
 {
 	if (nullptr == mesh) {
-		return {};
+		return nullptr;
 	}
-
-	QElapsedTimer timer;
-	timer.start();
-	qDebug() << "Function makeObject started";
-	QVector<Vertex> vertices;
-	for (const auto& face : mesh->faces()) {
-		for (const auto& vertex : mesh->vertices_around_face(mesh->halfedge(face))) {
-			Vertex custom_vertex;
-			const auto& vertex_point = mesh->point(vertex);
-			custom_vertex.position = {
-				vertex_point.x(),
-				vertex_point.y(),
-				vertex_point.z()
-			};
-			custom_vertex.normal = CGAL_API::computeVertexNormal(mesh, vertex);
-			custom_vertex.texture = { 0, 0 };
-			vertices.push_back(custom_vertex);
+	//try block only for cgal api exceptions
+	try {
+		QElapsedTimer timer;
+		timer.start();
+		qDebug() << "Message: scene object creation has been started";
+		QVector<Vertex> vertices;
+		for (const auto& face : mesh->faces()) {
+			for (const auto& vertex : mesh->vertices_around_face(mesh->halfedge(face))) {
+				Vertex custom_vertex;
+				const auto& vertex_point = mesh->point(vertex);
+				custom_vertex.position = {
+					static_cast<float>(CGAL::to_double(vertex_point.x())),
+					static_cast<float>(CGAL::to_double(vertex_point.y())),
+					static_cast<float>(CGAL::to_double(vertex_point.z()))
+				};
+				custom_vertex.normal = CGAL_API::computeVertexNormal(mesh, vertex);
+				custom_vertex.texture = { 0, 0 };
+				vertices.push_back(custom_vertex);
+			}
 		}
-	}
-	qint64 elapsed = timer.nsecsElapsed();
-	double elapsedSeconds = static_cast<double>(elapsed) / 1000000000.0; // Convert nanoseconds to seconds
-	qDebug() << "Function took" << elapsedSeconds << "seconds to execute";
+		qDebug() << "Message: scene object creation took" << 
+			static_cast<double>(timer.nsecsElapsed()) / 1000000000.0 << "sec to execute";
 
-	return std::make_shared<SceneObject>(
-		fileInfo.absoluteFilePath(),
-		fileInfo.baseName(),
-		vertices,
-		mesh->number_of_vertices(),
-		mesh->number_of_faces(),
-		mesh->number_of_edges()
-	);
+		return std::make_shared<SceneObject>(
+			fileInfo.absoluteFilePath(),
+			fileInfo.baseName(),
+			vertices,
+			mesh->number_of_vertices(),
+			mesh->number_of_faces(),
+			mesh->number_of_edges()
+		);
+	}
+	catch (const std::exception& exp)
+	{
+		qCritical() << exp.what();
+		return nullptr;
+	}
 }

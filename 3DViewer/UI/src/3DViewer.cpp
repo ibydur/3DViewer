@@ -61,14 +61,11 @@ void Viewer::handleObjectRemovement()
 std::shared_ptr<SceneObject> Viewer::constructObject(const QString& file)
 {
     std::unique_ptr<Surface_mesh> mesh = CGAL_API::constructMeshFromObj(file.toStdString());
-    if (nullptr == mesh) {
-        qCritical() << "Something went wrong while loading obj. Mesh wasn't constructed well.";
+    if (nullptr != mesh) {
+        std::shared_ptr<SceneObject> obj = SceneObject::makeObject(QFileInfo(file), mesh);
+        return obj;
     }
-    std::shared_ptr<SceneObject> obj = SceneObject::makeObject(QFileInfo(file), mesh);
-    if (nullptr == obj) {
-        qCritical() << "Something went wrong while loading obj. Scene object wasn't constructed well.";
-    }
-    return obj;
+    return nullptr;
 }
 
 void Viewer::connectSignalsSlots()
@@ -123,8 +120,10 @@ void Viewer::createStatusBar()
 void Viewer::handleObjectConstruction()
 {
     const auto& obj = std::move(watcher.result());
-    addFileToTreeList(obj->getFilePath(), obj->getID());
-    emit sceneUpdated(obj);
+    if (nullptr != obj) {
+        addFileToTreeList(obj->getFilePath(), obj->getID());
+        emit sceneUpdated(obj);
+    }
 }
 
 void Viewer::openFile()
