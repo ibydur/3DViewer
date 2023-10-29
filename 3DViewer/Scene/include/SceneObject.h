@@ -8,7 +8,7 @@
 #include <QQuaternion>
 #include <QDir>
 
-#include "../../Geometry/include/CgalApi.h"
+#include "CgalApi.h"
 
 struct Vertex {
 	QVector3D position;

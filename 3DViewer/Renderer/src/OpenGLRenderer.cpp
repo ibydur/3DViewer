@@ -2,7 +2,7 @@
 #include <QApplication>
 #include <QtMath>
 
-#include "../include/OpenGLRenderer.h"
+#include "OpenGLRenderer.h"
 
 OpenGLRenderer::OpenGLRenderer(QWidget* parent, const Scene& scene) :
 	QOpenGLWidget(parent),
@@ -15,11 +15,7 @@ OpenGLRenderer::OpenGLRenderer(QWidget* parent, const Scene& scene) :
 	//anti-alising
 	QSurfaceFormat format;
 	format.setSamples(4);
-	setFormat(format);
-}
-
-OpenGLRenderer::~OpenGLRenderer()
-{
+	setFormat(format); 
 }
 
 void OpenGLRenderer::drawObject(SceneObject& obj)

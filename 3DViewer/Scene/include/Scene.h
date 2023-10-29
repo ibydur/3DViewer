@@ -1,7 +1,7 @@
 #pragma once
 #include <QListWidget>
 
-#include "../include/SceneObject.h"
+#include "SceneObject.h"
 
 class Scene : public QObject {
 	Q_OBJECT
@@ -15,13 +15,14 @@ public:
 
 signals:
 	void verticesUpdated(QString) const;
-	void edgesUpdated(QString) const;
-	void facesUpdated(QString) const;
-	void IdUpdated(QString) const;
-	void widthUpdated(QString) const;
-	void lengthUpdated(QString) const;
-	void heightUpdated(QString) const;
-	void nameUpdated(QString) const;
+	void edgesUpdated	(QString) const;
+	void facesUpdated	(QString) const;
+	void IdUpdated		(QString) const;
+	void widthUpdated	(QString) const;
+	void lengthUpdated	(QString) const;
+	void heightUpdated	(QString) const;
+	void nameUpdated	(QString) const;
+	void redrawRenderer	(void)	  const;
 
 public slots:
 	void addObjectOnScene(const std::shared_ptr<SceneObject>&);

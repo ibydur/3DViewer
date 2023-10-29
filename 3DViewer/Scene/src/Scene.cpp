@@ -1,4 +1,4 @@
-#include "../include/Scene.h"
+#include "Scene.h"
 
 void Scene::addObjectOnScene(const std::shared_ptr<SceneObject>& obj)
 {

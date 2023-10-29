@@ -1,11 +1,11 @@
 #pragma once
 
 #include <QMainWindow>
-#include <QLabel>
 #include <QtConcurrent>
+#include <QLabel>
 
-#include "../../Renderer/include/OpenGLRenderer.h"
-#include "../../Scene/include/SceneObject.h"
+#include "OpenGLRenderer.h"
+#include "SceneObject.h"
 
 namespace Ui {
 class Viewer;

@@ -1,5 +1,5 @@
-#include "../../UI/include/3DViewer.h"
-#include "../../UI/include/ui_3DViewer.h"
+#include "3DViewer.h"
+#include "ui_3DViewer.h"
 
 #include <QFileDialog>
 #include <QMessageBox>

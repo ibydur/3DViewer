@@ -1,5 +1,6 @@
 #include <QApplication>
-#include "UI/include/3DViewer.h"
+
+#include "3DViewer.h"
 
 int main(int argc, char *argv[]) {
 

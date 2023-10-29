@@ -1,5 +1,5 @@
-#include "../include/SceneObject.h"
-#include "../../Renderer/include/OpenGLRenderer.h"
+#include "SceneObject.h"
+#include "OpenGLRenderer.h"
 
 unsigned int SceneObject::m_idCounter = 0;
 

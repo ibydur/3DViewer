@@ -7,8 +7,8 @@
 #include <QSurfaceFormat>
 #include <QListWidget>
 
-#include "../include/Camera.h"
-#include "../../Scene/include/Scene.h"
+#include "Camera.h"
+#include "Scene.h"
 
 
 class OpenGLRenderer : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core {
@@ -19,7 +19,7 @@ public:
 		SOLID
 	};
 	OpenGLRenderer(QWidget* parent = nullptr, const Scene& scene = Scene());
-	~OpenGLRenderer();
+	~OpenGLRenderer() = default;
 
 	void drawObject(SceneObject& obj);
 	void initObjectBuffers(SceneObject& obj);

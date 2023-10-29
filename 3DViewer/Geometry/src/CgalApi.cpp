@@ -1,10 +1,12 @@
-#include "../include/CgalApi.h"
+#include <QDebug>
+#include <QElapsedTimer>
+
+#include "CgalApi.h"
 
 #include <CGAL/Polygon_mesh_processing/compute_normal.h>
 #include <CGAL/Polygon_mesh_processing/triangulate_faces.h>
 
-#include <QDebug>
-#include <QElapsedTimer>
+
 
 std::unique_ptr<Surface_mesh> CGAL_API::constructMeshFromObj(const std::string& file_path)
 {
