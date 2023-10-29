@@ -92,15 +92,17 @@ void Viewer::connectSignalsSlots()
     connect(m_openGLRenderer, &OpenGLRenderer::framerateUpdated,   m_framerateLbl,      &QLabel::setText);
     connect(m_openGLRenderer, &OpenGLRenderer::drawingModeChanged, m_drawingModeLbl,    &QLabel::setText);
 
+    //loading obj
     connect(&watcher, &QFutureWatcher<std::shared_ptr<SceneObject>>::finished,  this, &Viewer::handleObjectConstruction);
     connect(&watcher, &QFutureWatcher<std::shared_ptr<SceneObject>>::started,  [this]() { m_statusLbl->setText("\"" + watcher.property("filename").toString() + "\" is loading"); });
     connect(&watcher, &QFutureWatcher<std::shared_ptr<SceneObject>>::finished, [this]() { m_statusLbl->setText(""); });
 
     //scene
-    connect(ui->objVisibleCB, &QCheckBox::stateChanged, &m_scene, &Scene::setCurrentObjVisibility);
-    connect(this, &Viewer::sceneUpdated, &m_scene, &Scene::addObjectOnScene);
-    connect(this, &Viewer::objectRemoved, &m_scene, &Scene::removeCurrentObjSelection);
-    connect(ui->objsListWidget, &QListWidget::currentItemChanged, &m_scene, &Scene::handleSceneItemChanged);
+    connect(ui->objVisibleCB,            &QCheckBox::stateChanged,         &m_scene, &Scene::setCurrentObjVisibility);
+    connect(ui->objDataMaterialComboBox, &QComboBox::currentTextChanged,   &m_scene, &Scene::setCurrentMaterial);
+    connect(ui->objsListWidget,          &QListWidget::currentItemChanged, &m_scene, &Scene::handleSceneItemChanged);
+    connect(this,                        &Viewer::sceneUpdated,            &m_scene, &Scene::addObjectOnScene);
+    connect(this,                        &Viewer::objectRemoved,           &m_scene, &Scene::removeCurrentObjSelection);
 }
 
 void Viewer::createStatusBar()

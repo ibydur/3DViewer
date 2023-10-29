@@ -8,6 +8,7 @@ void Scene::addObjectOnScene(const std::shared_ptr<SceneObject>& obj)
 
 Scene::Scene() : m_sceneObjectsLst{ }, m_currentSelection{ nullptr }
 {
+	createMaterials();
 }
 
 Scene::~Scene()
@@ -35,6 +36,16 @@ std::shared_ptr<SceneObject> Scene::getObjectByID(unsigned int id) const
 	return nullptr;
 }
 
+void Scene::createMaterials()
+{
+	MaterialProperties metal_material = MaterialProperties("Metal", QVector3D(0.6f, 0.6f, 0.6f), 0.2f, 0.5f, 128.0f);
+	MaterialProperties  bone_material = MaterialProperties("Skelet", QVector3D(0.9f, 0.85f, 0.7f), 0.1f, 0.1f, 32.0f);
+	m_sceneMaterialsLst.push_back(bone_material);
+	m_sceneMaterialsLst.push_back(metal_material);
+
+	m_currentMaterial = metal_material;
+}
+
 void Scene::removeCurrentObjSelection()
 {
 	const auto& current_obj = std::move(getCurrentObjSelection());
@@ -56,6 +67,16 @@ void Scene::setCurrentObjVisibility(int state)
 		return;
 	}
 	current_obj->setVisible(state);
+}
+
+void Scene::setCurrentMaterial(const QString& str)
+{
+	for (const auto& material : m_sceneMaterialsLst) {
+		if (material.name == str) {
+			m_currentMaterial = material;
+			break;
+		}
+	}
 }
 
 void Scene::updateObjDetails(const std::shared_ptr<SceneObject>& obj) const

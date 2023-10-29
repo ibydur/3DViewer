@@ -82,10 +82,12 @@ void OpenGLRenderer::setUniforms()
 	m_shaderProgram->setUniformValue("lightDirectionFront", QVector3D(0.0f, 0.0f, -1.0f));
 	m_shaderProgram->setUniformValue("lightDirectionBack", QVector3D(0.0f, 0.0f, 1.0f));
 	m_shaderProgram->setUniformValue("lightColor", QVector3D(1.0f, 1.0f, 1.0f));
-	m_shaderProgram->setUniformValue("objectColor", QVector3D(0.6f, 0.6f, 0.6f));
-	m_shaderProgram->setUniformValue("ambientStrength", 0.2f);
-	m_shaderProgram->setUniformValue("specularStrength", 0.5f);
-	m_shaderProgram->setUniformValue("shininess", 128.0f);
+	//material
+	auto current_material = m_scene.getCurrentMaterial();
+	m_shaderProgram->setUniformValue("objectColor", current_material.objectColor);
+	m_shaderProgram->setUniformValue("ambientStrength", current_material.ambientStrength);
+	m_shaderProgram->setUniformValue("specularStrength", current_material.specularStrength);
+	m_shaderProgram->setUniformValue("shininess", current_material.shininess);
 }
 
 void OpenGLRenderer::calculateFPS() {
