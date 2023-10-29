@@ -23,6 +23,7 @@ public:
 
 	void drawObject(SceneObject& obj);
 	void initObjectBuffers(SceneObject& obj);
+	void redraw(void);
 
 signals:
 	void mouseMoved(QString);

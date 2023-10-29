@@ -67,6 +67,7 @@ void Scene::setCurrentObjVisibility(int state)
 		return;
 	}
 	current_obj->setVisible(state);
+	emit redrawRenderer();
 }
 
 void Scene::setCurrentMaterial(const QString& str)
@@ -77,6 +78,7 @@ void Scene::setCurrentMaterial(const QString& str)
 			break;
 		}
 	}
+	emit redrawRenderer();
 }
 
 void Scene::updateObjDetails(const std::shared_ptr<SceneObject>& obj) const

@@ -50,6 +50,11 @@ void OpenGLRenderer::initObjectBuffers(SceneObject& obj)
 	obj.setBuffersInited(true);
 }
 
+void OpenGLRenderer::redraw(void)
+{
+	this->update();
+}
+
 void OpenGLRenderer::initializeGL() {
 	m_timer.start();
 	initializeOpenGLFunctions();
@@ -162,7 +167,7 @@ void OpenGLRenderer::keyPressEvent(QKeyEvent* event) {
 		emit drawingModeChanged(m_drawingMode == Mode::SOLID ? "solid" : "wireframe");
 		break;
 	}
-	update();
+	redraw();
 }
 
 void OpenGLRenderer::mousePressEvent(QMouseEvent* event)
@@ -204,13 +209,13 @@ void OpenGLRenderer::mouseMoveEvent(QMouseEvent* event)
 		processRotation(delta_vec);
 	}
 	m_lastMousePos = event->globalPos();
-	update();
+	redraw();
 }
 
 void OpenGLRenderer::wheelEvent(QWheelEvent* event) {
 	int delta = event->delta();
 	m_camera.processMouseScroll(delta);
-	update();
+	redraw();
 }
 
 void OpenGLRenderer::reset()

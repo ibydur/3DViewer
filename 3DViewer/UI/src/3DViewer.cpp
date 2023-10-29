@@ -87,6 +87,9 @@ void Viewer::connectSignalsSlots()
     connect(&m_scene, &Scene::lengthUpdated,   ui->objDataLengthLbl,   &QLabel::setText);
     connect(&m_scene, &Scene::nameUpdated,     ui->objDataNameLbl,     &QLabel::setText);
 
+    //redraw renderer
+    connect(&m_scene, &Scene::redrawRenderer, m_openGLRenderer, &OpenGLRenderer::redraw);
+
     //status bar
     connect(m_openGLRenderer, &OpenGLRenderer::mouseMoved,         m_mousePosLbl,       &QLabel::setText);
     connect(m_openGLRenderer, &OpenGLRenderer::framerateUpdated,   m_framerateLbl,      &QLabel::setText);
