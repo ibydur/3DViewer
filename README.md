@@ -23,3 +23,19 @@ Application .exe you can find in `${projectDir}/build/Release`.
 3. Click on "Configurations->Manage configurations...->Add a new configurations".
 4. Set a CMake toolchain file `${projectDir}/vcpkg/scripts/buildsystems/vcpkg.cmake` and CMake command arguments `-DVCPKG_TARGET_TRIPLET=x64-windows`. Press `Ctrl + S`.
 5. In Solution Explorer do right click on `CMakeLists.txt` and choose "Set as Startup Item".
+
+## How to build by own hand
+
+1. Make sure that you have installed git and cmake.
+2. Install vcpkg to the `${projectDir}` by doing these steps: `https://vcpkg.io/en/getting-started`
+3. Install `Qt` and `CGAL` by running this command being in `${projectDir}/vcpkg` directory: 
+```powershell
+vcpkg install --triplet=x64-windows qt5 cgal
+```
+4. Build the executable by these cmake commands being in `${projectDir}` directory:
+ ```powershell
+mkdir build && cd build
+cmake ..
+cmake --build . --config Release
+```
+Application .exe you can find in `${projectDir}/build/Release`.
