@@ -18,7 +18,7 @@ target_include_directories(${APP_TARGET_NAME}_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/3DViewer/Geometry/include
 )
 
-# Copy the design to the build directory
+# Copy the .objs to the build directory
 add_custom_command(TARGET ${APP_TARGET_NAME}_tests POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
     "${CMAKE_SOURCE_DIR}/resources/Objects/tmp.obj"
