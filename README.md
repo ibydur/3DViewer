@@ -1,9 +1,9 @@
 # 3D Viewer
-![mainwindow](./resources/Images/main_window.jpg)
+![mainwindow](./resources/images/main_window.jpg)
 
 ## What does it do?
 
-The program allows the user to upload .obj files and visualize them in a 3D scene. The user can interact with the object by moving and rotating it, as well as by adjusting the camera's position. Additionally, the program provides the ability to view details of the loaded object, such as vertices, faces, edges, and dimension parameters.
+The program allows the user to upload .obj files and visualize them on a 3D scene. The user can interact with the object by moving and rotating it, as well as by adjusting the camera's position. Additionally, the program provides the ability to view details of the loaded object, such as vertices, faces, edges, and dimension parameters.
 It's worth noting that the current version of the program is a MVP and will gradually expand its technology stack over time.
 
 ## Build instructions
@@ -15,6 +15,7 @@ Go to the `./ci/win/` and run the following command:
 build_windows.bat
 ```
 Application .exe you can find in `${projectDir}/build/Release`.
+Test objects you can find in `${projectDir}/resources/objects`.
 
 ## Visual Studio Setup:
 
@@ -24,10 +25,10 @@ Application .exe you can find in `${projectDir}/build/Release`.
 4. Set a CMake toolchain file `${projectDir}/vcpkg/scripts/buildsystems/vcpkg.cmake` and CMake command arguments `-DVCPKG_TARGET_TRIPLET=x64-windows`. Press `Ctrl + S`.
 5. In Solution Explorer do right click on `CMakeLists.txt` and choose "Set as Startup Item".
 
-## How to build by own hand
+## How to build the project with "own hand":
 
 1. Make sure that you have installed git and cmake.
-2. Install vcpkg to the `${projectDir}` by doing these steps: `https://vcpkg.io/en/getting-started`
+2. Install vcpkg to the `${projectDir}` by doing these steps: [`vcpkg/getting-started`](https://vcpkg.io/en/getting-started)
 3. Install `Qt` and `CGAL` by running this command being in `${projectDir}/vcpkg` directory: 
 ```powershell
 vcpkg install --triplet=x64-windows qt5 cgal
@@ -38,4 +39,11 @@ mkdir build && cd build
 cmake ..
 cmake --build . --config Release
 ```
+5. Run the tests by these commands being in `${projectDir}/build` directory:
+```powershell
+cd tests
+ctest -C Debug
+```
+
 Application .exe you can find in `${projectDir}/build/Release`.
+Test objects you can find in `${projectDir}/resources/objects`.

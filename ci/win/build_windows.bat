@@ -52,32 +52,5 @@ if "%errorlevel%" == "0" (
 )
 popd
 
-if exist %BUILD_DIR%\Release\3DViewer.exe (
-xcopy /s %VCPKGDIR%\installed\x64-windows\plugins %BUILD_DIR%\Release\plugins /e /y /i
-robocopy /njh /njs /ndl /nc /ns %VCPKGDIR%\installed\x64-windows\bin %BUILD_DIR%\Release ^
-    Qt5Core.dll ^
-    Qt5Gui.dll ^
-    Qt5Widgets.dll ^
-    brotlicommon.dll ^
-    brotlidec.dll ^
-    bz2d.dll ^
-    double-conversion.dll ^
-    freetype.dll ^
-    harfbuzz.dll ^
-    jpeg62.dll ^
-    liblzma.dll ^
-    libpng16.dll ^
-    libsharpyuv.dll ^
-    libwebp.dll ^
-    libwebpdemux.dll ^
-    libwebpmux.dll ^
-    pcre2-16.dll ^
-    Qt5Svg.dll ^
-    tiff.dll ^
-	zlib1.dll ^
-	zstd.dll ^
-	bz2.dll
-)
-
 :the_end
 pushd %SCRIPTDIR%

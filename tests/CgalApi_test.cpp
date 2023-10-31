@@ -41,4 +41,4 @@ private slots:
 };
 
 QTEST_APPLESS_MAIN(CgalApiTest)
-#include "Cgal_api_test.moc"
+#include "CgalApi_test.moc"

@@ -1,4 +1,3 @@
-find_package(Qt5 COMPONENTS Test REQUIRED)
 enable_testing()
 
 set(TEST_HEADER_FILES 
@@ -6,22 +5,24 @@ set(TEST_HEADER_FILES
 )
 
 set(TEST_SOURCE_FILES
-    Cgal_api_test.cpp
+    CgalApi_test.cpp
     ${CMAKE_SOURCE_DIR}/3DViewer/Geometry/src/CgalApi.cpp
 )
 
 add_executable(${APP_TARGET_NAME}_tests ${TEST_HEADER_FILES} ${TEST_SOURCE_FILES})
 
-target_link_libraries(${APP_TARGET_NAME}_tests Qt5::Test Qt5::Core Qt5::Gui CGAL::CGAL)
+target_link_libraries(${APP_TARGET_NAME}_tests Qt5::Core Qt5::Gui CGAL::CGAL Qt5::Test)
 
 target_include_directories(${APP_TARGET_NAME}_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/3DViewer/Geometry/include
 )
 
+add_test(NAME CgalApiTest COMMAND ${APP_TARGET_NAME}_tests)
+
 # Copy the .objs to the build directory
 add_custom_command(TARGET ${APP_TARGET_NAME}_tests POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
-    "${CMAKE_SOURCE_DIR}/resources/Objects/tmp.obj"
-    "${CMAKE_SOURCE_DIR}/resources/Objects/FinalBaseMesh.obj"
+    "${CMAKE_SOURCE_DIR}/resources/objects/tmp.obj"
+    "${CMAKE_SOURCE_DIR}/resources/objects/FinalBaseMesh.obj"
     "${CMAKE_CURRENT_BINARY_DIR}/"
 )
