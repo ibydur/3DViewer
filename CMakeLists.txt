@@ -25,6 +25,7 @@ set(Qt5_DIR "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/installed/${VCPKG_TARGET_TRIPLET}
 
 find_package(Qt5 COMPONENTS Widgets Gui OpenGL Concurrent REQUIRED)
 find_package(CGAL REQUIRED)
+
 message(STATUS "Qt version found: ${Qt5_VERSION}")
 
 # Create variables for header and source files
@@ -61,3 +62,5 @@ target_include_directories(${APP_TARGET_NAME} PRIVATE
     3DViewer/Geometry/include
     3DViewer/Scene/include
 )
+
+add_subdirectory(tests)
