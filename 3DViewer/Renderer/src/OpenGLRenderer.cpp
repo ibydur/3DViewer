@@ -124,25 +124,15 @@ void OpenGLRenderer::paintGL()
 	calculateFPS();
 }
 
-void OpenGLRenderer::initializeShaders() {
-	QString current_source_filepath = QString::fromUtf8(__FILE__); // Full path to the current source file
-	QDir source_file_dir = QFileInfo(current_source_filepath).dir(); // Directory of the source file
-	QDir shaders_dir(source_file_dir.absoluteFilePath("../shaders")); // Path to shaders directory
-
-	bool compile_result;
-	m_vertexShader = new QOpenGLShader(QOpenGLShader::Vertex, this);
-	compile_result = m_vertexShader->compileSourceFile(shaders_dir.filePath("main_vert.glsl")); // Path to vertex shader file
-	m_fragmentShader = new QOpenGLShader(QOpenGLShader::Fragment, this);
-	compile_result = m_fragmentShader->compileSourceFile(shaders_dir.filePath("main_frag.glsl")); // Path to fragment shader file
-
-	// Create and link shader program
+void OpenGLRenderer::initializeShaders() 
+{
 	m_shaderProgram = new QOpenGLShaderProgram(this);
-	m_shaderProgram->addShader(m_vertexShader);
-	m_shaderProgram->addShader(m_fragmentShader);
-	m_shaderProgram->link();
-
-	delete m_vertexShader;
-	delete m_fragmentShader;
+	if (!m_shaderProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/main_vert.glsl")) {
+		qCritical() << "Critical: error while loading vertex shader.";
+	}
+	if (!m_shaderProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/main_frag.glsl")) {
+		qCritical() << "Critical: error while loading fragment shader.";
+	}
 }
 
 void OpenGLRenderer::keyPressEvent(QKeyEvent* event) {

@@ -18,7 +18,12 @@ set(SOURCE_FILES
     Scene/src/SceneObject.cpp
 )
 
-add_executable(${APP_TARGET_NAME} ${HEADER_FILES} ${SOURCE_FILES})
+qt5_add_resources(QT_RESOURCES
+    Renderer/shaders/shaders.qrc
+)
+
+add_executable(${APP_TARGET_NAME} ${HEADER_FILES} ${SOURCE_FILES} ${QT_RESOURCES})
+
 target_link_libraries(${APP_TARGET_NAME} Qt5::Core Qt5::Gui Qt5::Widgets Qt5::OpenGL Qt5::Concurrent CGAL::CGAL)
 
 target_include_directories(${APP_TARGET_NAME} PRIVATE
