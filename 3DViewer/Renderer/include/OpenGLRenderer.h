@@ -23,7 +23,10 @@ public:
 
 	void drawObject(SceneObject& obj);
 	void initObjectBuffers(SceneObject& obj);
-	void redraw(void);
+
+public slots:
+    void redraw(void);
+    void updateCamera(float bblength);
 
 signals:
 	void mouseMoved(QString);

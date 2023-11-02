@@ -23,6 +23,8 @@ void Scene::handleSceneItemChanged(QListWidgetItem* current, QListWidgetItem* pr
 	if (nullptr != current) {
 		auto current_id = current->data(Qt::UserRole);
 		m_currentSelection = std::move(getObjectByID(current_id.toUInt()));
+        emit updateCamera(m_currentSelection->getBoundingBoxLength());
+        emit redrawRenderer();
 	}
 }
 

@@ -50,6 +50,11 @@ void OpenGLRenderer::initObjectBuffers(SceneObject& obj)
 	obj.setBuffersInited(true);
 }
 
+void OpenGLRenderer::updateCamera(float bblength) 
+{
+    m_camera.reset(bblength);
+}
+
 void OpenGLRenderer::redraw(void)
 {
 	this->update();
@@ -113,7 +118,6 @@ void OpenGLRenderer::paintGL()
 		if (!current_obj->isBuffersInited()) {
 			current_obj->intializeBuffers(this);
 			current_obj->setTranslationVec(-current_obj->getObjectCenter()); //move obj to center coordinate system
-			m_camera.FitInWindow(current_obj->getBoundingBoxLength());
 		}
 		transform(current_obj);
 		setUniforms();
@@ -213,10 +217,7 @@ void OpenGLRenderer::reset()
 	const auto& current_obj = std::move(m_scene.getCurrentObjSelection());
 	if (nullptr != current_obj) {
 		current_obj->reset();
-		m_camera.reset(current_obj->getBoundingBoxLength());
-	}
-	else {
-		m_camera.reset();
+        updateCamera(current_obj->getBoundingBoxLength());
 	}
 }
 

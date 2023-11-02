@@ -22,7 +22,8 @@ signals:
 	void lengthUpdated	(QString) const;
 	void heightUpdated	(QString) const;
 	void nameUpdated	(QString) const;
-	void redrawRenderer	(void)	  const;
+	void redrawRenderer	(void)    const;
+    void updateCamera	(float)   const;
 
 public slots:
 	void addObjectOnScene(const std::shared_ptr<SceneObject>&);

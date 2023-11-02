@@ -87,8 +87,9 @@ void Viewer::connectSignalsSlots()
     connect(&m_scene, &Scene::lengthUpdated,   ui->objDataLengthLbl,   &QLabel::setText);
     connect(&m_scene, &Scene::nameUpdated,     ui->objDataNameLbl,     &QLabel::setText);
 
-    //redraw renderer
+    //renderer actions
     connect(&m_scene, &Scene::redrawRenderer, m_openGLRenderer, &OpenGLRenderer::redraw);
+    connect(&m_scene, &Scene::updateCamera,   m_openGLRenderer, &OpenGLRenderer::updateCamera);
 
     //status bar
     connect(m_openGLRenderer, &OpenGLRenderer::mouseMoved,         m_mousePosLbl,       &QLabel::setText);
@@ -126,8 +127,8 @@ void Viewer::handleObjectConstruction()
 {
     const auto& obj = std::move(watcher.result());
     if (nullptr != obj) {
-        addFileToTreeList(obj->getFilePath(), obj->getID());
         emit sceneUpdated(obj);
+        addFileToTreeList(obj->getFilePath(), obj->getID()); 
     }
 }
 
